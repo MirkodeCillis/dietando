@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gestore_spesa/models/models.dart';
+import 'package:diet_shopping/models/models.dart';
 import 'package:uuid/uuid.dart';
 
 class NewExtra extends StatelessWidget {

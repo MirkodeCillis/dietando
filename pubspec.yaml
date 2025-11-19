@@ -1,4 +1,4 @@
-name: gestore_spesa
+name: diet_shopping
 description: "Inserisci la dieta e genera la spesa settimanale."
 publish_to: 'none'
 version: 1.2.0
@@ -12,12 +12,33 @@ dependencies:
   google_generative_ai: ^0.4.0
   shared_preferences: ^2.2.2
   uuid: ^4.3.3
-  intl: ^0.19.0
+  intl: ^0.20.2
+
+flutter:
+  uses-material-design: true
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
 
-flutter:
-  uses-material-design: true
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  
+  # Opzionale: per piattaforme specifiche
+  web:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+  macos:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+  linux:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+

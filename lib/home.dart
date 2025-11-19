@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gestore_spesa/screens/all.dart';
-import 'package:gestore_spesa/models/models.dart';
-import 'package:gestore_spesa/services/data_service.dart';
+import 'package:diet_shopping/screens/all.dart';
+import 'package:diet_shopping/models/models.dart';
+import 'package:diet_shopping/services/data_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.eco, color: Colors.green),
             SizedBox(width: 8),
-            Text('Gestore Spesa', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Diet Shopping', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: Colors.white,

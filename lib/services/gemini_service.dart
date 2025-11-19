@@ -1,4 +1,4 @@
-import 'package:gestore_spesa/models/models.dart';
+import 'package:diet_shopping/models/models.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 class GeminiService {

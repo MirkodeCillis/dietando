@@ -1,6 +1,6 @@
 {
-    "name": "gestore_spesa",
-    "short_name": "gestore_spesa",
+    "name": "diet_shopping",
+    "short_name": "diet_shopping",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gestore_spesa/components/filter.dart';
-import 'package:gestore_spesa/components/new_extra.dart';
-import 'package:gestore_spesa/models/models.dart';
+import 'package:diet_shopping/components/filter.dart';
+import 'package:diet_shopping/components/new_extra.dart';
+import 'package:diet_shopping/models/models.dart';
 
 class ExtraPage extends StatefulWidget {
   final List<ExtraItem> items;

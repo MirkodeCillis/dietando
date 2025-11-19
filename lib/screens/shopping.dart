@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gestore_spesa/components/filter.dart';
-import 'package:gestore_spesa/models/models.dart';
+import 'package:diet_shopping/components/filter.dart';
+import 'package:diet_shopping/models/models.dart';
 
 class ShoppingPage extends StatefulWidget {
   final List<DietItem> dietItems;

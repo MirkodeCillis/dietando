@@ -1,0 +1,12 @@
+# flutter_launcher_icons.yaml
+image_path: "assets/icon/app_icon.png"
+android: true
+ios: true
+web:
+  generate: true
+windows:
+  generate: true
+macos:
+  generate: true
+linux:
+  generate: true
