@@ -30,7 +30,7 @@ class DietPage extends StatelessWidget {
           return Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 children: [
                   Row(
@@ -40,7 +40,6 @@ class DietPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text(item.category, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
                           ],
                         ),
                       ),
@@ -71,8 +70,8 @@ class DietPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Posseduto: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
                       Text("Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}"),
+                      Text("Posseduto: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
                     ],
                   )
                 ],
@@ -88,23 +87,24 @@ class DietPage extends StatelessWidget {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final targetCtrl = TextEditingController(text: item?.weeklyTarget.toString() ?? '');
     final stockCtrl = TextEditingController(text: item?.currentStock.toString() ?? '');
-    final catCtrl = TextEditingController(text: item?.category ?? 'Generale');
+    final unitCtrl = TextEditingController(text: item?.unit.name ?? Unit.grams.name);
     
     showDialog(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
       title: Text(item == null ? "Nuovo Alimento" : "Modifica Alimento"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Nome")),
-            TextField(controller: catCtrl, decoration: const InputDecoration(labelText: "Categoria")),
             Row(
               children: [
                 Expanded(child: TextField(controller: targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Target"))),
                 const SizedBox(width: 10),
                 Expanded(child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Stock"))),
               ],
-            )
+            ),
+            TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: "Unità di Misura")),
           ],
         ),
       ),
@@ -117,7 +117,6 @@ class DietPage extends StatelessWidget {
             weeklyTarget: double.tryParse(targetCtrl.text) ?? 0,
             currentStock: double.tryParse(stockCtrl.text) ?? 0,
             unit: Unit.grams, // Semplificato
-            category: catCtrl.text,
           );
           
           if (item == null) {
