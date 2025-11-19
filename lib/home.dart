@@ -51,15 +51,15 @@ class _HomeScreenState extends State<HomeScreen> {
         items: _dietItems,
         onUpdate: (items) { _dietItems = items; _saveDiet(); },
       ),
+      ExtraPage(
+        items: _extraItems,
+        onUpdate: (items) { _extraItems = items; _saveExtras(); },
+      ),
       ShoppingPage(
         dietItems: _dietItems,
         extraItems: _extraItems,
         onUpdateDiet: (items) { _dietItems = items; _saveDiet(); },
         onUpdateExtra: (items) { _extraItems = items; _saveExtras(); },
-      ),
-      ExtraPage(
-        items: _extraItems,
-        onUpdate: (items) { _extraItems = items; _saveExtras(); },
       ),
       AiPage(dietItems: _dietItems, extraItems: _extraItems),
     ];
@@ -83,8 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.grid_view), label: 'Piano'),
-          NavigationDestination(icon: Icon(Icons.shopping_basket), label: 'Extra'),
-          NavigationDestination(icon: Icon(Icons.checklist), label: 'Spesa'),
+          NavigationDestination(icon: Icon(Icons.checklist), label: 'Extra'),
+          NavigationDestination(icon: Icon(Icons.shopping_basket), label: 'Spesa'),
           NavigationDestination(icon: Icon(Icons.psychology), label: 'AI'),
         ],
       ),
