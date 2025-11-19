@@ -72,7 +72,7 @@ class ShoppingPage extends StatelessWidget {
               child: ListTile(
                 leading: const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.local_pizza, color: Colors.white, size: 20)),
                 title: Text(item.name),
-                subtitle: Text(item.estimatedCost != null ? "€ ${item.estimatedCost!.toStringAsFixed(2)}" : "Costo N/D"),
+                subtitle: Text(item.quantity != null ? "€ ${item.quantity!.toStringAsFixed(2)}" : "N. S."),
                 trailing: IconButton(
                   icon: const Icon(Icons.check_circle_outline, color: Colors.orange),
                   onPressed: () {

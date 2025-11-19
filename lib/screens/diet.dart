@@ -71,7 +71,7 @@ class DietPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}"),
-                      Text("Posseduto: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
+                      Text("Stock: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
                     ],
                   )
                 ],
@@ -101,9 +101,25 @@ class DietPage extends StatelessWidget {
             SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: TextField(controller: targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Target"))),
+                Expanded(child: TextField(
+                  controller: targetCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Target"
+                    )
+                  )
+                ),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Stock"))),
+                Expanded(child: TextField(
+                  controller: stockCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Stock"
+                    )
+                  )
+                ),
               ],
             ),
             SizedBox(height: 12),

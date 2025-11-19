@@ -36,28 +36,28 @@ class ExtraItem {
   String id;
   String name;
   bool isBought;
-  double? estimatedCost;
+  double? quantity;
 
   ExtraItem({
     required this.id,
     required this.name,
     this.isBought = false,
-    this.estimatedCost,
+    this.quantity = 1,
   });
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'isBought': isBought,
-        'estimatedCost': estimatedCost,
+        'quantity': quantity,
       };
 
   factory ExtraItem.fromJson(Map<String, dynamic> json) => ExtraItem(
         id: json['id'],
         name: json['name'],
         isBought: json['isBought'] ?? false,
-        estimatedCost: json['estimatedCost'] != null
-            ? (json['estimatedCost'] as num).toDouble()
+        quantity: json['quantity'] != null
+            ? (json['quantity'] as num).toDouble()
             : null,
       );
 }
