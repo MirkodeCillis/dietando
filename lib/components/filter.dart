@@ -35,39 +35,37 @@ class _FilterState<T> extends State<Filter<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: fieldCtrl,
-                onChanged: onChange,
-                decoration: InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  filled: true,
-                  fillColor: Colors.white,
-                  labelText: "Filtra",
-                  suffix: IconButton(
-                    icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
-                    onPressed: () {
-                      fieldCtrl.clear();
-                      onChange('');
-                      FocusScope.of(context).unfocus();
-                    },
-                  ),
+    return IntrinsicHeight(
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: fieldCtrl,
+              onChanged: onChange,
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                filled: true,
+                fillColor: Colors.white,
+                labelText: "Filtra",
+                suffix: IconButton(
+                  icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                  onPressed: () {
+                    fieldCtrl.clear();
+                    onChange('');
+                    FocusScope.of(context).unfocus();
+                  },
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
