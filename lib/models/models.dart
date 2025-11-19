@@ -1,4 +1,4 @@
-enum Unit { grams, pieces, liters }
+enum Unit { Grammi, Pezzi, Litri }
 
 class DietItem {
   String id;

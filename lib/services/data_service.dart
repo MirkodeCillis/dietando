@@ -19,8 +19,8 @@ class DataService {
     if (encoded == null) {
       // Dati di default come nell'app React
       return [
-        DietItem(id: '1', name: 'Petto di Pollo', weeklyTarget: 1000, currentStock: 200, unit: Unit.grams),
-        DietItem(id: '2', name: 'Riso Basmati', weeklyTarget: 700, currentStock: 700, unit: Unit.grams),
+        DietItem(id: '1', name: 'Petto di Pollo', weeklyTarget: 1000, currentStock: 200, unit: Unit.Grammi),
+        DietItem(id: '2', name: 'Riso Basmati', weeklyTarget: 700, currentStock: 700, unit: Unit.Grammi),
       ];
     }
     final List<dynamic> decoded = jsonDecode(encoded);

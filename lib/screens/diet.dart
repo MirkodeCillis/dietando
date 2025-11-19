@@ -87,7 +87,8 @@ class DietPage extends StatelessWidget {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final targetCtrl = TextEditingController(text: item?.weeklyTarget.toString() ?? '');
     final stockCtrl = TextEditingController(text: item?.currentStock.toString() ?? '');
-    final unitCtrl = TextEditingController(text: item?.unit.name ?? Unit.grams.name);
+    Unit selectedUnit = item?.unit ?? Unit.Grammi;
+    final unitCtrl = TextEditingController(text: selectedUnit.name);
     
     showDialog(context: context, builder: (ctx) => AlertDialog(
       backgroundColor: Colors.white,
@@ -96,15 +97,35 @@ class DietPage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Nome")),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Nome")),
+            SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: TextField(controller: targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Target"))),
+                Expanded(child: TextField(controller: targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Target"))),
                 const SizedBox(width: 10),
-                Expanded(child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Stock"))),
+                Expanded(child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Stock"))),
               ],
             ),
-            TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: "Unità di Misura")),
+            SizedBox(height: 12),
+            DropdownMenu<Unit>(
+                  expandedInsets: EdgeInsets.zero,
+                  initialSelection: selectedUnit,
+                  controller: unitCtrl,
+                  requestFocusOnTap: false,
+                  label: const Text('Unità di Misura'),
+                  onSelected: (Unit? unit) {
+                    if (unit != null) {
+                      selectedUnit = unit;
+                      unitCtrl.text = unit.name;
+                    }
+                  },
+                  dropdownMenuEntries: Unit.values
+                      .map((unit) => DropdownMenuEntry<Unit>(
+                            value: unit,
+                            label: unit.name,
+                          ))
+                      .toList(),
+                  )
           ],
         ),
       ),
@@ -116,7 +137,7 @@ class DietPage extends StatelessWidget {
             name: nameCtrl.text,
             weeklyTarget: double.tryParse(targetCtrl.text) ?? 0,
             currentStock: double.tryParse(stockCtrl.text) ?? 0,
-            unit: Unit.grams, // Semplificato
+            unit: selectedUnit,
           );
           
           if (item == null) {
@@ -132,4 +153,5 @@ class DietPage extends StatelessWidget {
       ],
     ));
   }
+  
 }
