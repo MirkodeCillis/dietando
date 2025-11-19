@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gestore_spesa/models/models.dart';
+import 'package:uuid/uuid.dart';
 
 class ExtraPage extends StatelessWidget {
   final List<ExtraItem> items;
