@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gestore_spesa/components/filter.dart';
 import 'package:gestore_spesa/models/models.dart';
 
-class ShoppingPage extends StatelessWidget {
+class ShoppingPage extends StatefulWidget {
   final List<DietItem> dietItems;
   final List<ExtraItem> extraItems;
   final Function(List<DietItem>) onUpdateDiet;
@@ -14,11 +15,32 @@ class ShoppingPage extends StatelessWidget {
     required this.onUpdateDiet,
     required this.onUpdateExtra
   });
+  @override
+  State<ShoppingPage> createState() => _ShoppingPageState();
+}
+
+class _ShoppingPageState extends State<ShoppingPage> {
+  List<ExtraItem> filteredExtraItems = [];
+  List<DietItem> filteredDietItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredDietItems = widget.dietItems;
+    filteredExtraItems = widget.extraItems;
+  }
+
+  @override
+  void didUpdateWidget(covariant ShoppingPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    filteredDietItems = widget.dietItems;
+    filteredExtraItems = widget.extraItems;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final missingDiet = dietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
-    final pendingExtras = extraItems.where((i) => !i.isBought).toList();
+    final missingDiet = filteredDietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
+    final pendingExtras = filteredExtraItems.where((i) => !i.isBought).toList();
 
     if (missingDiet.isEmpty && pendingExtras.isEmpty) {
       return Center(
@@ -36,11 +58,16 @@ class ShoppingPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Text("DA DIETA", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+        ),
+        Filter<DietItem>(list: widget.dietItems, filterBy: (item) => item.name, updateList: (List<DietItem> resultItems) {
+          setState(() {
+            filteredDietItems = resultItems;
+          });
+        }),
         if (missingDiet.isNotEmpty) ...[
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text("DA DIETA", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-          ),
           ...missingDiet.map((item) {
             final missing = item.weeklyTarget - item.currentStock;
             return Card(
@@ -52,37 +79,52 @@ class ShoppingPage extends StatelessWidget {
                   icon: const Icon(Icons.add_shopping_cart, color: Colors.green),
                   onPressed: () {
                     // Logica "Compra": aggiunge la differenza allo stock
-                    final index = dietItems.indexWhere((e) => e.id == item.id);
-                    final updatedList = List<DietItem>.from(dietItems);
+                    final index = widget.dietItems.indexWhere((e) => e.id == item.id);
+                    final updatedList = List<DietItem>.from(widget.dietItems);
                     updatedList[index].currentStock += missing;
-                    onUpdateDiet(updatedList);
+                    widget.onUpdateDiet(updatedList);
                   },
                 ),
               ),
             );
           }),
-        ],
-        if (pendingExtras.isNotEmpty) ...[
+        ] else ...[
           const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text("Nessun alimento da comprare!"),
+          ),
+        ],
+        const Padding(
             padding: EdgeInsets.fromLTRB(8, 24, 8, 8),
             child: Text("EXTRA", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
           ),
+          Filter<ExtraItem>(list: widget.extraItems, filterBy: (item) => item.name, updateList: (List<ExtraItem> resultItems) {
+            setState(() {
+              filteredExtraItems = resultItems;
+            });
+          }),
+        if (pendingExtras.isNotEmpty) ...[
           ...pendingExtras.map((item) {
             return Card(
               child: ListTile(
                 leading: const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.local_pizza, color: Colors.white, size: 20)),
                 title: Text(item.name),
-                subtitle: Text(item.quantity != null ? "€ ${item.quantity!.toStringAsFixed(2)}" : "N. S."),
+                subtitle: Text(item.quantity != null ? "Quantità ${item.quantity!.toStringAsFixed(2)}" : "N. S."),
                 trailing: IconButton(
                   icon: const Icon(Icons.check_circle_outline, color: Colors.orange),
                   onPressed: () {
                     item.isBought = true;
-                    onUpdateExtra(extraItems);
+                    widget.onUpdateExtra(widget.extraItems);
                   },
                 ),
               ),
             );
           }),
+        ] else ...[
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text("Nessun extra da comprare!"),
+          ),
         ]
       ],
     );

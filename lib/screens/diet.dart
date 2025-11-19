@@ -1,12 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:gestore_spesa/components/filter.dart';
 import 'package:gestore_spesa/models/models.dart';
 import 'package:uuid/uuid.dart';
 
-class DietPage extends StatelessWidget {
+class DietPage extends StatefulWidget {
   final List<DietItem> items;
   final Function(List<DietItem>) onUpdate;
 
   const DietPage({super.key, required this.items, required this.onUpdate});
+
+  @override
+  State<DietPage> createState() => _DietPageState();
+}
+
+class _DietPageState extends State<DietPage> {
+  List<DietItem> filteredItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredItems = widget.items;
+  }
+
+  @override
+  void didUpdateWidget(covariant DietPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    filteredItems = widget.items;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,68 +38,82 @@ class DietPage extends StatelessWidget {
         backgroundColor: const Color(0xFF10B981),
         foregroundColor: Colors.white,
       ),
-      body: items.isEmpty 
+      body: widget.items.isEmpty 
       ? const Center(child: Text("Nessun alimento nel piano.")) 
-      : ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: items.length,
-        itemBuilder: (ctx, i) {
-          final item = items[i];
-          final progress = item.weeklyTarget > 0 ? (item.currentStock / item.weeklyTarget).clamp(0.0, 1.0) : 0.0;
-          
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      : Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Column( children: [
+          Filter<DietItem>(list: widget.items, filterBy: (item) => item.name, updateList: (List<DietItem> resultItems) {
+            setState(() {
+              filteredItems = resultItems;
+            });
+          }),
+          SizedBox(height: 12),
+          Expanded(child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
+            itemCount: filteredItems.length,
+            itemBuilder: (ctx, i) {
+              final item = filteredItems[i];
+              final progress = item.weeklyTarget > 0 ? (item.currentStock / item.weeklyTarget).clamp(0.0, 1.0) : 0.0;
+              
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: InkWell(
+                  onTap: () => _showItemDialog(context, item),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
-                            Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                              onPressed: () => _showItemDialog(context, item),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                              onPressed: () {
+                                final newList = List<DietItem>.from(widget.items)..removeAt(i);
+                                widget.onUpdate(newList);
+                              },
+                            ),
                           ],
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blueGrey),
-                        onPressed: () => _showItemDialog(context, item),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                        onPressed: () {
-                          final newList = List<DietItem>.from(items)..removeAt(i);
-                          onUpdate(newList);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 8,
-                      color: progress >= 1 ? Colors.green : (progress > 0.5 ? Colors.orange : Colors.red),
-                      backgroundColor: Colors.grey[200],
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 8,
+                            color: progress >= 1 ? Colors.green : (progress > 0.5 ? Colors.orange : Colors.red),
+                            backgroundColor: Colors.grey[200],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}"),
+                            Text("Stock: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
+                          ],
+                        )
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}"),
-                      Text("Stock: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                )
+              );
+            }),
+          )
+        ])
+      )
     );
   }
 
@@ -157,17 +191,16 @@ class DietPage extends StatelessWidget {
           );
           
           if (item == null) {
-            onUpdate([...items, newItem]);
+            widget.onUpdate([...widget.items, newItem]);
           } else {
-            final index = items.indexWhere((e) => e.id == item.id);
-            final newList = List<DietItem>.from(items);
+            final index = widget.items.indexWhere((e) => e.id == item.id);
+            final newList = List<DietItem>.from(widget.items);
             newList[index] = newItem;
-            onUpdate(newList);
+            widget.onUpdate(newList);
           }
           Navigator.pop(ctx);
         }, child: const Text("Salva")),
       ],
     ));
   }
-  
 }
