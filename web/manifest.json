@@ -1,6 +1,6 @@
 {
-    "name": "diet_shopping",
-    "short_name": "diet_shopping",
+    "name": "dietando",
+    "short_name": "dietando",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

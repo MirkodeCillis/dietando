@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:diet_shopping/home.dart';
+import 'package:dietando/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Diet Shopping',
+      title: 'Dietando',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF10B981)), // Brand color simile al React

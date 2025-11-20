@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:diet_shopping/screens/all.dart';
-import 'package:diet_shopping/models/models.dart';
-import 'package:diet_shopping/services/data_service.dart';
+import 'package:dietando/screens/all.dart';
+import 'package:dietando/models/models.dart';
+import 'package:dietando/services/data_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.eco, color: Colors.green),
             SizedBox(width: 8),
-            Text('Diet Shopping', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Dietando', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: Colors.white,

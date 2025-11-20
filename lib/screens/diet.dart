@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:diet_shopping/components/filter.dart';
-import 'package:diet_shopping/models/models.dart';
+import 'package:dietando/components/filter.dart';
+import 'package:dietando/models/models.dart';
 import 'package:uuid/uuid.dart';
 
 class DietPage extends StatefulWidget {

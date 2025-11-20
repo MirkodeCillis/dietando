@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:diet_shopping/models/models.dart';
+import 'package:dietando/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DataService {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:diet_shopping/models/models.dart';
-import 'package:diet_shopping/services/gemini_service.dart';
+import 'package:dietando/models/models.dart';
+import 'package:dietando/services/gemini_service.dart';
 
 class AiPage extends StatefulWidget {
   final List<DietItem> dietItems;

@@ -1,4 +1,4 @@
-# Diet Shopping
+# Dietando
 Add the quantity of each food in your diet, set the quantity you already have in your house, and get the shopping list ready.
 
 The actual goal of this project is exploring Flutter. The author wanted to try writing an application using Flutter. By the way, it could still be useful in its meaning.

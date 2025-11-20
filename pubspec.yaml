@@ -1,4 +1,4 @@
-name: diet_shopping
+name: dietando
 description: "Inserisci la dieta e genera la spesa settimanale."
 publish_to: 'none'
 version: 1.2.0
