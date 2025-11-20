@@ -1,0 +1,105 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches:
+      - main  # o il tuo branch principale
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Scarica tutta la history per analizzare i commit
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'  # Usa la tua versione
+          channel: 'stable'
+
+      - name: Get current version
+        id: current_version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Determine version bump type
+        id: bump_type
+        run: |
+          # Analizza l'ultimo commit
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          
+          if echo "$COMMIT_MSG" | grep -qi "BREAKING CHANGE"; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif echo "$COMMIT_MSG" | grep -qiE "^feat(\(.+\))?:"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif echo "$COMMIT_MSG" | grep -qiE "^fix(\(.+\))?:"; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "type=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump version
+        id: new_version
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          CURRENT="${{ steps.current_version.outputs.version }}"
+          TYPE="${{ steps.bump_type.outputs.type }}"
+          
+          # Separa versione e build number
+          VERSION_PART=$(echo $CURRENT | cut -d'+' -f1)
+          BUILD_NUMBER=$(echo $CURRENT | cut -d'+' -f2)
+          
+          # Separa major.minor.patch
+          MAJOR=$(echo $VERSION_PART | cut -d'.' -f1)
+          MINOR=$(echo $VERSION_PART | cut -d'.' -f2)
+          PATCH=$(echo $VERSION_PART | cut -d'.' -f3)
+          
+          # Incrementa in base al tipo
+          if [ "$TYPE" = "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$TYPE" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          elif [ "$TYPE" = "patch" ]; then
+            PATCH=$((PATCH + 1))
+          fi
+          
+          # Incrementa sempre il build number
+          BUILD_NUMBER=$((BUILD_NUMBER + 1))
+          
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH+$BUILD_NUMBER"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+          
+          # Aggiorna pubspec.yaml
+          sed -i "s/^version:.*/version: $NEW_VERSION/" pubspec.yaml
+
+      - name: Commit and push changes
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to ${{ steps.new_version.outputs.new_version }} [skip ci]"
+          git push
+
+      - name: Create Git Tag
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          VERSION="${{ steps.new_version.outputs.new_version }}"
+          VERSION_ONLY=$(echo $VERSION | cut -d'+' -f1)
+          git tag "v$VERSION_ONLY"
+          git push origin "v$VERSION_ONLY"
+
+      - name: No version bump needed
+        if: steps.bump_type.outputs.type == 'none'
+        run: echo "Commit message doesn't match conventional commits pattern. Skipping version bump."
