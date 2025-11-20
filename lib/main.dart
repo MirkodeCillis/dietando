@@ -1,3 +1,4 @@
+import 'package:dietando/global.dart';
 import 'package:flutter/material.dart';
 import 'package:dietando/home.dart';
 
@@ -14,13 +15,39 @@ class MyApp extends StatelessWidget {
       title: 'Dietando',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF10B981)), // Brand color simile al React
+        colorScheme: colorScheme, // Orange-500
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF8FAFC), // Slate-50
-        cardTheme: const CardThemeData(
-          surfaceTintColor: Colors.white,
-          color: Colors.white,
+        cardTheme: CardThemeData(
           elevation: 2,
+        ),
+        dialogTheme: const DialogThemeData(
+          shape:  RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          )
+        ),
+        inputDecorationTheme: const InputDecorationThemeData(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+        ),
+        dropdownMenuTheme: DropdownMenuThemeData(
+          inputDecorationTheme: InputDecorationThemeData(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+          ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          foregroundColor: colorScheme.onSurface,
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         ),
       ),
       home: const HomeScreen(),

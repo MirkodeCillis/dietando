@@ -46,38 +46,50 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
-    final tabs = [
-      DietPage(
-        items: _dietItems,
-        onUpdate: (items) { _dietItems = items; _saveDiet(); },
-      ),
-      ExtraPage(
-        items: _extraItems,
-        onUpdate: (items) { _extraItems = items; _saveExtras(); },
-      ),
-      ShoppingPage(
-        dietItems: _dietItems,
-        extraItems: _extraItems,
-        onUpdateDiet: (items) { _dietItems = items; _saveDiet(); },
-        onUpdateExtra: (items) { _extraItems = items; _saveExtras(); },
-      ),
-      AiPage(dietItems: _dietItems, extraItems: _extraItems),
+    final tabs = <Map<String, dynamic>>[
+      {
+        'title': 'La Mia Dieta',
+        'page': DietPage(
+          items: _dietItems,
+          onUpdate: (items) { _dietItems = items; _saveDiet(); },
+        )
+      },
+      {
+        'title': 'Spese Extra',
+        'page': ExtraPage(
+          items: _extraItems,
+          onUpdate: (items) { _extraItems = items; _saveExtras(); },
+        ),
+      },
+      {
+        'title': 'Lista della Spesa',
+        'page': ShoppingPage(
+          dietItems: _dietItems,
+          extraItems: _extraItems,
+          onUpdateDiet: (items) { _dietItems = items; _saveDiet(); },
+          onUpdateExtra: (items) { _extraItems = items; _saveExtras(); },
+        ),
+      },
+      {
+        'title': 'Consigli AI',
+        'page':  AiPage(dietItems: _dietItems, extraItems: _extraItems),
+      },
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.eco, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Dietando', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              tabs[_currentIndex]['title'],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: Colors.black12,
+        elevation: 2,
       ),
-      body: tabs[_currentIndex],
+      body: tabs[_currentIndex]['page'],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
