@@ -79,11 +79,11 @@ class _ExtraPageState extends State<ExtraPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
+                              icon: const Icon(Icons.edit, color: Colors.grey),
                               onPressed: () => _showItemDialog(context, item),
                             ) ,
                             IconButton(
-                              icon: const Icon(Icons.delete, size: 20, color: Colors.redAccent),
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                               onPressed: () {
                                 final newList = List<ExtraItem>.from(widget.items)..removeAt(i);
                                 widget.onUpdate(newList);
@@ -124,6 +124,7 @@ class _ExtraPageState extends State<ExtraPage> {
         ],
       ),
       actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Annulla")),
         FilledButton(onPressed: () {
           final newItem = ExtraItem(
             id: item?.id ?? const Uuid().v4(),
