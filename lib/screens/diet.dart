@@ -74,13 +74,6 @@ class _DietPageState extends State<DietPage> {
                               icon: const Icon(Icons.edit),
                               onPressed: () => _showItemDialog(context, item),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                              onPressed: () {
-                                final newList = List<DietItem>.from(widget.items)..removeAt(i);
-                                widget.onUpdate(newList);
-                              },
-                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -89,8 +82,7 @@ class _DietPageState extends State<DietPage> {
                           child: LinearProgressIndicator(
                             value: progress,
                             minHeight: 8,
-                            color: progress >= 1 ? Colors.green : (progress > 0.5 ? Colors.orange : Colors.red),
-                            backgroundColor: Colors.grey[200],
+                            color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.onError),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -120,7 +112,24 @@ class _DietPageState extends State<DietPage> {
     final unitCtrl = TextEditingController(text: selectedUnit.name);
     
     showDialog(context: context, builder: (ctx) => AlertDialog(
-      title: Text(item == null ? "Nuovo Alimento" : "Modifica Alimento", textAlign: TextAlign.center,),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        spacing: 8,
+        children: [
+          Text(item == null ? "Nuovo Alimento" : "Modifica Alimento"),
+          if (item != null) ...[ 
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.onError),
+              onPressed: () {
+                final int idx = widget.items.indexWhere((e) => e.id == item.id);
+                final newList = List<DietItem>.from(widget.items)..removeAt(idx);
+                widget.onUpdate(newList);
+              },
+            ),
+          ]
+          
+        ],
+      ) ,
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

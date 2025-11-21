@@ -11,15 +11,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.blue,
+      seedColor: Color(0xFF7692FF),
       brightness: Brightness.dark,
-      dynamicSchemeVariant: DynamicSchemeVariant.fidelity
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+      onError: Color.fromARGB(255, 239, 43, 43)
     );
     return MaterialApp(
       title: 'Dietando',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: colorScheme, // Orange-500
+        colorScheme: colorScheme,
         useMaterial3: true,
         cardTheme: CardThemeData(
           elevation: 2,

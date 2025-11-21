@@ -82,7 +82,7 @@ class _ExtraPageState extends State<ExtraPage> {
                               onPressed: () => _showItemDialog(context, item),
                             ) ,
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                              icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.onError),
                               onPressed: () {
                                 final newList = List<ExtraItem>.from(widget.items)..removeAt(i);
                                 widget.onUpdate(newList);
