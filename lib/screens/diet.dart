@@ -35,30 +35,26 @@ class _DietPageState extends State<DietPage> {
         onPressed: () => _showItemDialog(context, null),
         label: const Text("Aggiungi"),
         icon: const Icon(Icons.add),
-        backgroundColor: const Color(0xFF10B981),
-        foregroundColor: Colors.white,
       ),
       body: widget.items.isEmpty 
       ? const Center(child: Text("Nessun alimento nel piano.")) 
-      : Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column( children: [
+      : Column( children: [
           Filter<DietItem>(list: widget.items, filterBy: (item) => item.name, updateList: (List<DietItem> resultItems) {
             setState(() {
               filteredItems = resultItems;
             });
           }),
-          SizedBox(height: 12),
           Expanded(child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
             itemCount: filteredItems.length,
             itemBuilder: (ctx, i) {
               final item = filteredItems[i];
               final progress = item.weeklyTarget > 0 ? (item.currentStock / item.weeklyTarget).clamp(0.0, 1.0) : 0.0;
               
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                 child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () => _showItemDialog(context, item),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -75,15 +71,8 @@ class _DietPageState extends State<DietPage> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                              icon: const Icon(Icons.edit),
                               onPressed: () => _showItemDialog(context, item),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                              onPressed: () {
-                                final newList = List<DietItem>.from(widget.items)..removeAt(i);
-                                widget.onUpdate(newList);
-                              },
                             ),
                           ],
                         ),
@@ -93,8 +82,7 @@ class _DietPageState extends State<DietPage> {
                           child: LinearProgressIndicator(
                             value: progress,
                             minHeight: 8,
-                            color: progress >= 1 ? Colors.green : (progress > 0.5 ? Colors.orange : Colors.red),
-                            backgroundColor: Colors.grey[200],
+                            color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.onError),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -113,7 +101,6 @@ class _DietPageState extends State<DietPage> {
             }),
           )
         ])
-      )
     );
   }
 
@@ -125,21 +112,36 @@ class _DietPageState extends State<DietPage> {
     final unitCtrl = TextEditingController(text: selectedUnit.name);
     
     showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: Colors.white,
-      title: Text(item == null ? "Nuovo Alimento" : "Modifica Alimento"),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        spacing: 8,
+        children: [
+          Text(item == null ? "Nuovo Alimento" : "Modifica Alimento"),
+          if (item != null) ...[ 
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.onError),
+              onPressed: () {
+                final int idx = widget.items.indexWhere((e) => e.id == item.id);
+                final newList = List<DietItem>.from(widget.items)..removeAt(idx);
+                widget.onUpdate(newList);
+              },
+            ),
+          ]
+          
+        ],
+      ) ,
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: nameCtrl, decoration: const InputDecoration(border: OutlineInputBorder(), labelText: "Nome")),
-            SizedBox(height: 12),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: "Nome")),
+            SizedBox(height: 16),
             Row(
               children: [
                 Expanded(child: TextField(
                   controller: targetCtrl,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
                     labelText: "Target"
                     )
                   )
@@ -149,14 +151,13 @@ class _DietPageState extends State<DietPage> {
                   controller: stockCtrl,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
                     labelText: "Stock"
                     )
                   )
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 16),
             DropdownMenu<Unit>(
                   expandedInsets: EdgeInsets.zero,
                   initialSelection: selectedUnit,

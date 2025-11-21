@@ -35,7 +35,8 @@ class _FilterState<T> extends State<Filter<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       child: Row(
         children: [
           Expanded(
@@ -43,16 +44,6 @@ class _FilterState<T> extends State<Filter<T>> {
               controller: fieldCtrl,
               onChanged: onChange,
               decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                filled: true,
-                fillColor: Colors.white,
                 labelText: "Filtra",
                 suffix: IconButton(
                   icon: const Icon(Icons.clear, size: 20, color: Colors.grey),

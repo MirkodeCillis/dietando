@@ -42,8 +42,8 @@ class _AiPageState extends State<AiPage> {
               style: FilledButton.styleFrom(backgroundColor: Colors.deepPurple),
               icon: _loading 
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                : const Icon(Icons.play_arrow),
-              label: Text(_loading ? "Analisi in corso..." : "Genera Consigli"),
+                : const Icon(Icons.play_arrow, color: Colors.white),
+              label: Text(_loading ? "Analisi in corso..." : "Genera Consigli", style: const TextStyle(color: Colors.white)),
             ),
           ),
           const SizedBox(height: 24),
