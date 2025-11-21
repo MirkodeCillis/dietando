@@ -1,4 +1,3 @@
-import 'package:dietando/global.dart';
 import 'package:flutter/material.dart';
 import 'package:dietando/components/filter.dart';
 import 'package:dietando/models/models.dart';
@@ -46,7 +45,6 @@ class _ExtraPageState extends State<ExtraPage> {
                 filteredItems = resultItems;
               });
             }),
-            const SizedBox(height: 12),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
@@ -56,6 +54,7 @@ class _ExtraPageState extends State<ExtraPage> {
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                     child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () => _showItemDialog(context, item),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 16),
@@ -73,7 +72,7 @@ class _ExtraPageState extends State<ExtraPage> {
                             widget.onUpdate(newList);
                           },
                         ),
-                        title: Text(item.name, style: TextStyle(decoration: item.isBought ? TextDecoration.lineThrough : null, color: item.isBought ? colorScheme.primary : null)), 
+                        title: Text(item.name, style: TextStyle(decoration: item.isBought ? TextDecoration.lineThrough : null, color: item.isBought ? Theme.of(context).colorScheme.primary : null)), 
                         subtitle: item.quantity != null ? Text("Quantità: ${item.quantity}") : null,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,

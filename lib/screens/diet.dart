@@ -44,7 +44,6 @@ class _DietPageState extends State<DietPage> {
               filteredItems = resultItems;
             });
           }),
-          SizedBox(height: 12),
           Expanded(child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
             itemCount: filteredItems.length,
@@ -55,6 +54,7 @@ class _DietPageState extends State<DietPage> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                 child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () => _showItemDialog(context, item),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

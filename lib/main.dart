@@ -1,4 +1,3 @@
-import 'package:dietando/global.dart';
 import 'package:flutter/material.dart';
 import 'package:dietando/home.dart';
 
@@ -11,6 +10,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: Brightness.dark,
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity
+    );
     return MaterialApp(
       title: 'Dietando',
       debugShowCheckedModeBanner: false,
@@ -19,6 +23,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         cardTheme: CardThemeData(
           elevation: 2,
+          margin: const EdgeInsets.all(0)
         ),
         dialogTheme: const DialogThemeData(
           shape:  RoundedRectangleBorder(
@@ -48,6 +53,9 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
+        ),
+        expansionTileTheme: ExpansionTileThemeData(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
       home: const HomeScreen(),
