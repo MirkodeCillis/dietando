@@ -1,7 +1,7 @@
 name: dietando
 description: "Insert your diet and get your weekly shopping list."
 publish_to: 'none'
-version: 0.4.2+19
+version: 0.5.0+19
 
 environment:
   sdk: ^3.10.0
