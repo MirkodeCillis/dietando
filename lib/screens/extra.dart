@@ -15,6 +15,7 @@ class ExtraPage extends StatefulWidget {
 
 class _ExtraPageState extends State<ExtraPage> {
   List<ExtraItem> filteredItems = [];
+  final FilterController filterController = FilterController();
 
   @override
   void initState() {
@@ -40,11 +41,16 @@ class _ExtraPageState extends State<ExtraPage> {
       ? const Center(child: Text("Nessuna spesa extra da fare.")) 
       : Column(
           children: [
-            Filter<ExtraItem>(list: widget.items, filterBy: (item) => item.name, updateList: (List<ExtraItem> resultItems) {
-              setState(() {
-                filteredItems = resultItems;
-              });
-            }),
+            Filter<ExtraItem>(
+              controller: filterController,
+              list: widget.items, 
+              filterBy: (item) => item.name, 
+              updateList: (List<ExtraItem> resultItems) {
+                setState(() {
+                  filteredItems = resultItems;
+                });
+              }
+            ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
@@ -59,35 +65,41 @@ class _ExtraPageState extends State<ExtraPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 16),
                         child: ListTile(
-                        leading: Checkbox(
-                          value: item.isBought,
-                          onChanged: (v) {
-                            final newList = List<ExtraItem>.from(widget.items);
-                            newList[i] = ExtraItem(
-                              id: item.id,
-                              name: item.name,
-                              quantity: item.quantity,
-                              isBought: v!,
-                            );
-                            widget.onUpdate(newList);
-                          },
-                        ),
-                        title: Text(item.name, style: TextStyle(decoration: item.isBought ? TextDecoration.lineThrough : null, color: item.isBought ? Theme.of(context).colorScheme.primary : null)), 
-                        subtitle: item.quantity != null ? Text("Quantità: ${item.quantity}") : null,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.grey),
-                              onPressed: () => _showItemDialog(context, item),
-                            ) ,
-                            IconButton(
-                              icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.onError),
-                              onPressed: () {
-                                final newList = List<ExtraItem>.from(widget.items)..removeAt(i);
+                          leading: Checkbox(
+                            value: item.isBought,
+                            onChanged: (v) {
+                              final index = widget.items.indexWhere((e) => e.id == item.id);
+                              if (index != -1) {
+                                final newList = List<ExtraItem>.from(widget.items);
+                                newList[index] = ExtraItem(
+                                  id: item.id,
+                                  name: item.name,
+                                  quantity: item.quantity,
+                                  isBought: v!,
+                                );
                                 widget.onUpdate(newList);
                               }
-                            )],
+                            },
+                          ),
+                          title: Text(
+                            item.name, 
+                            style: TextStyle(
+                              decoration: item.isBought ? TextDecoration.lineThrough : null,
+                              color: item.isBought ? Theme.of(context).colorScheme.primary : null
+                            )
+                          ), 
+                          subtitle: item.quantity != null ? Text("Quantità: ${item.quantity}") : null,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: Theme.of(context).colorScheme.primaryContainer,
+                                ),
+                                onPressed: () => _showItemDialog(context, item),
+                              )
+                            ],
                           ),
                         )
                       )
@@ -105,44 +117,79 @@ class _ExtraPageState extends State<ExtraPage> {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final qtyCtrl = TextEditingController(text: item?.quantity?.toString() ?? "");
     
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      title: Text(item == null ? "Nuovo Articolo" : "Modifica Articolo", textAlign: TextAlign.center,),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: nameCtrl,
-            decoration: const InputDecoration(labelText: "Nome")
+    showDialog(
+      context: context, 
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: 8,
+          children: [
+            Text(item == null ? "Nuovo Articolo" : "Modifica Articolo"),
+            if (item != null) ...[ 
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline, 
+                  color: Theme.of(context).colorScheme.onError
+                ),
+                onPressed: () {
+                  final int idx = widget.items.indexWhere((e) => e.id == item.id);
+                  if (idx != -1) {
+                    final newList = List<ExtraItem>.from(widget.items)..removeAt(idx);
+                    widget.onUpdate(newList);
+                    filterController.reset();
+                  }
+                  Navigator.pop(ctx);
+                },
+              ),
+            ]
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: "Nome")
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: qtyCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "Quantità")
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx), 
+            child: const Text("Annulla")
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: qtyCtrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: "Quantità")
+          FilledButton(
+            onPressed: () {
+              final newItem = ExtraItem(
+                id: item?.id ?? const Uuid().v4(),
+                name: nameCtrl.text,
+                quantity: double.tryParse(qtyCtrl.text),
+                isBought: item?.isBought ?? false,
+              );
+
+              if (item == null) {
+                widget.onUpdate([...widget.items, newItem]);
+              } else {
+                final index = widget.items.indexWhere((e) => e.id == item.id);
+                if (index != -1) {
+                  final newList = List<ExtraItem>.from(widget.items);
+                  newList[index] = newItem;
+                  widget.onUpdate(newList);
+                }
+              }
+              filterController.reset();
+              Navigator.pop(ctx);
+            }, 
+            child: const Text("Salva")
           ),
         ],
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Annulla")),
-        FilledButton(onPressed: () {
-          final newItem = ExtraItem(
-            id: item?.id ?? const Uuid().v4(),
-            name: nameCtrl.text,
-            quantity: double.tryParse(qtyCtrl.text),
-            isBought: item?.isBought ?? false,
-          );
-
-          if (item == null) {
-            widget.onUpdate([...widget.items, newItem]);
-          } else {
-            final index = widget.items.indexWhere((e) => e.id == item.id);
-            final newList = List<ExtraItem>.from(widget.items);
-            newList[index] = newItem;
-            widget.onUpdate(newList);
-          }
-          Navigator.pop(ctx);
-        }, child: const Text("Salva")),
-      ],
-    ));
+      )
+    );
   }
 }
