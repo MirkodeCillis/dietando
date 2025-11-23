@@ -1,3 +1,5 @@
+import 'package:dietando/components/shopping_list_diet_item.dart';
+import 'package:dietando/components/shopping_list_extra_item.dart';
 import 'package:flutter/material.dart';
 import 'package:dietando/components/filter.dart';
 import 'package:dietando/models/models.dart';
@@ -104,45 +106,22 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
               if (missingDiet.isNotEmpty) 
                 ...missingDiet.map((item) {
-                  final missing = item.weeklyTarget - item.currentStock;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Card(
-                      elevation: 0,
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Icon(
-                            Icons.shopping_basket,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(item.name),
-                        subtitle: Text("Mancano $missing ${item.unit.name}"),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.add_shopping_cart,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          onPressed: () {
-                            final index = widget.dietItems.indexWhere((e) => e.id == item.id);
-                            if (index != -1) {
-                              final updatedList = List<DietItem>.from(widget.dietItems);
-                              updatedList[index] = DietItem(
-                                id: item.id,
-                                name: item.name,
-                                unit: item.unit,
-                                weeklyTarget: item.weeklyTarget,
-                                currentStock: item.currentStock + missing,
-                              );
-                              widget.onUpdateDiet(updatedList);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
+                  return ShoppingListDietItem(
+                    item: item, 
+                    onUpdateDiet: (amount) {
+                      final index = widget.dietItems.indexWhere((e) => e.id == item.id);
+                      if (index != -1) {
+                        final updatedList = List<DietItem>.from(widget.dietItems);
+                        updatedList[index] = DietItem(
+                          id: item.id,
+                          name: item.name,
+                          unit: item.unit,
+                          weeklyTarget: item.weeklyTarget,
+                          currentStock: item.currentStock + amount,
+                        );
+                        widget.onUpdateDiet(updatedList);
+                      }
+                    }
                   );
                 })
               else 
@@ -195,47 +174,21 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
               if (pendingExtras.isNotEmpty) 
                 ...pendingExtras.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Card(
-                      elevation: 0,
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                          child: Icon(
-                            Icons.shopping_cart,
-                            color: Theme.of(context).colorScheme.onSecondaryContainer,
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(item.name),
-                        subtitle: Text(
-                          item.quantity != null 
-                            ? "Quantità: ${item.quantity!.toStringAsFixed(2)}" 
-                            : "Quantità non specificata"
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.check_circle_outline,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          onPressed: () {
-                            final index = widget.extraItems.indexWhere((e) => e.id == item.id);
-                            if (index != -1) {
-                              final updatedList = List<ExtraItem>.from(widget.extraItems);
-                              updatedList[index] = ExtraItem(
-                                id: item.id,
-                                name: item.name,
-                                quantity: item.quantity,
-                                isBought: true,
-                              );
-                              widget.onUpdateExtra(updatedList);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
+                  return ShoppingListExtraItem(
+                    item: item, 
+                    onUpdateExtra: () {
+                      final index = widget.extraItems.indexWhere((e) => e.id == item.id);
+                      if (index != -1) {
+                        final updatedList = List<ExtraItem>.from(widget.extraItems);
+                        updatedList[index] = ExtraItem(
+                          id: item.id,
+                          name: item.name,
+                          quantity: item.quantity,
+                          isBought: true,
+                        );
+                        widget.onUpdateExtra(updatedList);
+                      }
+                    }
                   );
                 })
               else 
