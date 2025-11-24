@@ -115,6 +115,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                         updatedList[index] = DietItem(
                           id: item.id,
                           name: item.name,
+                          description: item.description,
                           unit: item.unit,
                           weeklyTarget: item.weeklyTarget,
                           currentStock: item.currentStock + amount,

@@ -3,6 +3,7 @@ enum Unit { Grammi, Pezzi, Litri }
 class DietItem {
   String id;
   String name;
+  String description;
   double weeklyTarget;
   double currentStock;
   Unit unit;
@@ -10,6 +11,7 @@ class DietItem {
   DietItem({
     required this.id,
     required this.name,
+    required this.description,
     required this.weeklyTarget,
     required this.currentStock,
     required this.unit,
@@ -26,6 +28,7 @@ class DietItem {
   factory DietItem.fromJson(Map<String, dynamic> json) => DietItem(
         id: json['id'],
         name: json['name'],
+        description: json['description'],
         weeklyTarget: (json['weeklyTarget'] as num).toDouble(),
         currentStock: (json['currentStock'] as num).toDouble(),
         unit: Unit.values[json['unit']],

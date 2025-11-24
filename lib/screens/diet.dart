@@ -125,6 +125,7 @@ class _DietPageState extends State<DietPage> {
 
   void _showItemDialog(BuildContext context, DietItem? item) {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
+    final descriptionCtrl = TextEditingController(text: item?.description ?? '');
     final targetCtrl = TextEditingController(text: item?.weeklyTarget.toString() ?? '');
     final stockCtrl = TextEditingController(text: item?.currentStock.toString() ?? '');
     Unit selectedUnit = item?.unit ?? Unit.Grammi;
@@ -207,6 +208,17 @@ class _DietPageState extends State<DietPage> {
                       label: unit.name,
                     ))
                 .toList(),
+            ),
+            const SizedBox(height: 16,),
+            TextField(
+              controller: descriptionCtrl,
+              minLines: 1,
+              maxLines: 4,
+              keyboardType: TextInputType.multiline,
+              decoration: const InputDecoration(
+                labelText: "Descrizione",
+                hintText: "Aggiungi una descrizione...",
+              ),
             )
           ],
         ),
@@ -221,6 +233,7 @@ class _DietPageState extends State<DietPage> {
             final newItem = DietItem(
               id: item?.id ?? const Uuid().v4(),
               name: nameCtrl.text,
+              description: descriptionCtrl.text,
               weeklyTarget: double.tryParse(targetCtrl.text) ?? 0,
               currentStock: double.tryParse(stockCtrl.text) ?? 0,
               unit: selectedUnit,
