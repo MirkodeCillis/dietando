@@ -71,8 +71,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       },
       {
-        'title': 'Consigli AI',
-        'page':  AiPage(dietItems: _dietItems, extraItems: _extraItems),
+        'title': 'Impostazioni',
+        'page':  ShoppingPage(
+          dietItems: _dietItems,
+          extraItems: _extraItems,
+          onUpdateDiet: (items) { _dietItems = items; _saveDiet(); },
+          onUpdateExtra: (items) { _extraItems = items; _saveExtras(); },
+        ),
       },
     ];
 
@@ -97,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(icon: Icon(Icons.article_outlined), label: 'Dieta'),
           NavigationDestination(icon: Icon(Icons.checklist), label: 'Extra'),
           NavigationDestination(icon: Icon(Icons.shopping_basket), label: 'Spesa'),
-          NavigationDestination(icon: Icon(Icons.auto_awesome), label: 'AI'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Impostazioni'),
         ],
       ),
     );
