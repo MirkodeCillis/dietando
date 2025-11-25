@@ -138,7 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     IconButton(
                       icon: Icon(
                         Icons.delete_outline,
-                        color: Theme.of(context).colorScheme.onError,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       onPressed: () => _deleteCategory(index),
                     ),

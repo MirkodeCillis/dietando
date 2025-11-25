@@ -95,7 +95,6 @@ class _ExtraPageState extends State<ExtraPage> {
                               IconButton(
                                 icon: Icon(
                                   Icons.edit,
-                                  color: Theme.of(context).colorScheme.primaryContainer,
                                 ),
                                 onPressed: () => _showItemDialog(context, item),
                               )
@@ -129,7 +128,7 @@ class _ExtraPageState extends State<ExtraPage> {
               IconButton(
                 icon: Icon(
                   Icons.delete_outline, 
-                  color: Theme.of(context).colorScheme.onError
+                  color: Theme.of(context).colorScheme.error
                 ),
                 onPressed: () {
                   final int idx = widget.items.indexWhere((e) => e.id == item.id);

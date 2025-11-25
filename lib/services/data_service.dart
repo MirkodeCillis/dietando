@@ -4,10 +4,27 @@ import 'package:dietando/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DataService {
+  static const String _mealPlanKey = 'meal_plan_data';
   static const String _dietKey = 'diet_items';
   static const String _extraKey = 'extra_items';
   static const String _categoriesKey = 'categories_items';
   static const String _settingsKey = 'settings_data';
+
+  static Future<void> saveMealPlan(MealPlan mealPlan) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(mealPlan.toJson());
+    await prefs.setString(_mealPlanKey, encoded);
+  }
+
+  static Future<MealPlan> loadMealPlan() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? encoded = prefs.getString(_mealPlanKey);
+    if (encoded == null) {
+      return MealPlan();
+    }
+    final dynamic decoded = jsonDecode(encoded);
+    return MealPlan.fromJson(decoded);
+  }
 
   static Future<void> saveDiet(List<DietItem> items) async {
     final prefs = await SharedPreferences.getInstance();
@@ -19,10 +36,7 @@ class DataService {
     final prefs = await SharedPreferences.getInstance();
     final String? encoded = prefs.getString(_dietKey);
     if (encoded == null) {
-      return [
-        DietItem(id: '1', name: 'Petto di Pollo', description: '', weeklyTarget: 1000, currentStock: 200, unit: Unit.Grammi),
-        DietItem(id: '2', name: 'Riso Basmati', description: '', weeklyTarget: 700, currentStock: 700, unit: Unit.Grammi),
-      ];
+      return [];
     }
     final List<dynamic> decoded = jsonDecode(encoded);
     return decoded.map((e) => DietItem.fromJson(e)).toList();
@@ -52,10 +66,7 @@ class DataService {
     final prefs = await SharedPreferences.getInstance();
     final String? encoded = prefs.getString(_categoriesKey);
     if (encoded == null) {
-      return [
-        ShoppingCategory(id: '1', name: 'Carne', priority: 1),
-        ShoppingCategory(id: '2', name: 'Verdure', priority: 2),
-      ];
+      return [];
     };
     final List<dynamic> decoded = jsonDecode(encoded);
     return decoded.map((e) => ShoppingCategory.fromJson(e)).toList();

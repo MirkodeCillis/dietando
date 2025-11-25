@@ -60,7 +60,6 @@ class _ShoppingListExtraItemState extends State<ShoppingListExtraItem> {
           trailing: IconButton(
             icon: Icon(
               Icons.check_circle_outline,
-              color: Theme.of(context).colorScheme.primaryContainer,
             ),
             onPressed: () {widget.onUpdateExtra();},
           ),
