@@ -98,7 +98,7 @@ class _InventoryPageState extends State<InventoryPage> {
                               child: LinearProgressIndicator(
                                 value: progress,
                                 minHeight: 8,
-                                color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.error),
+                                color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.onError),
                               ),
                             ),
                             const SizedBox(height: 8),

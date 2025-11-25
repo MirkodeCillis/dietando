@@ -62,7 +62,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
         itemBuilder: (context, index) {
           final day = DayOfWeek.values[(index + currentDay) % DayOfWeek.values.length];
           final isSelected = day == _selectedDay;
-          
+
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ChoiceChip(
@@ -82,7 +82,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
 
   Widget _buildMealSection(MealType mealType) {
     final items = _mealPlan.plan[_selectedDay]![mealType]!;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -101,9 +101,30 @@ class _MealPlanPageState extends State<MealPlanPage> {
               mealType.displayName,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              onPressed: () => _showAddItemDialog(mealType),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () => _showAddItemDialog(mealType),
+                ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 1.5,
+                    ),
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(18),
+                    minimumSize: Size.zero,
+                  ),
+                  onPressed: () => _consumeMeal(mealType),
+                  child: const Icon(
+                    Icons.dinner_dining,
+                    size: 18,
+                  ),
+                )
+              ],
             ),
           ),
           if (items.isEmpty)
@@ -192,8 +213,6 @@ class _MealPlanPageState extends State<MealPlanPage> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text(item == null ? 'Aggiungi Alimento' : 'Modifica Alimento'),
-
-              // FIX: dà un vincolo stabile al dialog
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -205,8 +224,6 @@ class _MealPlanPageState extends State<MealPlanPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-
-                    // ListView con altezza fissa (stabile e senza shrinkWrap)
                     SizedBox(
                       height: 200,
                       child: ListView.builder(
@@ -224,7 +241,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                             selectedTileColor: Theme.of(context)
                                 .colorScheme
                                 .primaryContainer
-                                .withValues(alpha: 0.5),
+                                .withValues(alpha: 0.3),
                             title: Text(dietItem.name),
                             subtitle: Text(dietItem.unit.name),
                             onTap: () {
@@ -236,10 +253,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                         },
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
-                    // Pulsante crea nuovo
                     OutlinedButton.icon(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -251,9 +265,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                         minimumSize: const Size(double.infinity, 40),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     TextField(
                       controller: quantityCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -265,7 +277,6 @@ class _MealPlanPageState extends State<MealPlanPage> {
                   ],
                 ),
               ),
-
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
@@ -395,7 +406,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
               widget.onUpdateDietItems(updatedDietItems);
 
               Navigator.pop(ctx);
-              
+
               Future.delayed(const Duration(milliseconds: 100), () {
                 _showItemDialog(mealType, null);
               });
@@ -423,7 +434,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
               setState(() {
                 _mealPlan.plan[_selectedDay]![mealType]!.removeWhere((i) => i.id == item.id);
               });
-              final int idx = widget.dietItems.indexWhere((di) {return di.id == item.dietItemId;});
+              final int idx = widget.dietItems.indexWhere((di) => di.id == item.dietItemId);
               if (idx > -1) {
                 widget.dietItems[idx].weeklyTarget -= item.quantity;
               }
@@ -432,6 +443,45 @@ class _MealPlanPageState extends State<MealPlanPage> {
               Navigator.pop(ctx);
             },
             child: const Text('Elimina'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _consumeMeal(MealType mealType) {
+    final items = _mealPlan.plan[_selectedDay]![mealType]!;
+
+    if (items.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Conferma consumo pasto'),
+        content: const Text('Sei sicuro di aver consumato questo pasto?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annulla'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final updatedDietItems = widget.dietItems.map((di) {
+                final mealItem = items.firstWhere(
+                  (i) => i.dietItemId == di.id,
+                  orElse: () => MealPlanItem(id: '', dietItemId: '', quantity: 0),
+                );
+                if (mealItem.id.isNotEmpty) {
+                  final newStock = di.currentStock - mealItem.quantity;
+                  return di.copyWith(currentStock: newStock < 0 ? 0 : newStock);
+                }
+                return di;
+              }).toList();
+
+              widget.onUpdateDietItems(updatedDietItems);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Conferma'),
           ),
         ],
       ),

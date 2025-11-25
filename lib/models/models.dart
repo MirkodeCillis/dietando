@@ -35,6 +35,24 @@ class DietItem {
     currentStock: (json['currentStock'] as num).toDouble(),
     unit: Unit.values[json['unit']],
   );
+
+  DietItem copyWith({
+    String? id,
+    String? name,
+    String? description,
+    double? weeklyTarget,
+    double? currentStock,
+    Unit? unit
+  }) {
+    return DietItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      weeklyTarget: weeklyTarget ?? this.weeklyTarget,
+      currentStock: currentStock ?? this.currentStock,
+      unit: unit ?? this.unit
+    );
+  }
 }
 
 enum MealType {

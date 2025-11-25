@@ -131,11 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.article_outlined), label: 'Dieta'),
-          NavigationDestination(icon: Icon(Icons.home), label: 'Inventario'),
-          NavigationDestination(icon: Icon(Icons.checklist), label: 'Extra'),
-          NavigationDestination(icon: Icon(Icons.shopping_basket), label: 'Spesa'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Impostazioni'),
+          NavigationDestination(icon: Icon(Icons.menu_book_outlined), label: 'Dieta'),
+          NavigationDestination(icon: Icon(Icons.food_bank_outlined), label: 'Inventario'),
+          NavigationDestination(icon: Icon(Icons.checklist_outlined), label: 'Extra'),
+          NavigationDestination(icon: Icon(Icons.shopping_basket_outlined), label: 'Spesa'),
+          NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Impostazioni'),
         ],
       ),
     );
