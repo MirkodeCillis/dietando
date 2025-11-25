@@ -29,8 +29,8 @@ class DietItem {
 
   factory DietItem.fromJson(Map<String, dynamic> json) => DietItem(
     id: json['id'],
-    name: json['name'],
-    description: json['description'],
+    name: json['name'] ?? '',
+    description: json['description'] ?? '',
     weeklyTarget: (json['weeklyTarget'] as num).toDouble(),
     currentStock: (json['currentStock'] as num).toDouble(),
     unit: Unit.values[json['unit']],

@@ -36,10 +36,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
     return Scaffold(
       body: Column(
         children: [
-          // Selector giorni della settimana
           _buildDaySelector(),
           const Divider(height: 1),
-          // Lista pasti del giorno selezionato
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -114,7 +112,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                 child: Text(
                   'Nessun alimento inserito',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -149,14 +147,13 @@ class _MealPlanPageState extends State<MealPlanPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.edit, size: 20),
+            icon: const Icon(Icons.edit),
             onPressed: () => _showEditItemDialog(mealType, item),
           ),
           IconButton(
             icon: Icon(
               Icons.delete_outline,
-              size: 20,
-              color: Theme.of(context).colorScheme.error,
+              color: Theme.of(context).colorScheme.onError,
             ),
             onPressed: () => _deleteItem(mealType, item),
           ),
@@ -256,7 +253,6 @@ class _MealPlanPageState extends State<MealPlanPage> {
 
                     const SizedBox(height: 16),
 
-                    // Quantità
                     TextField(
                       controller: quantityCtrl,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -286,6 +282,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                     }
 
                     final quantity = double.tryParse(quantityCtrl.text) ?? 0;
+                    selectedDietItem!.weeklyTarget = (selectedDietItem?.weeklyTarget ?? 0) + quantity;
 
                     final newItem = MealPlanItem(
                       id: item?.id ?? const Uuid().v4(),
@@ -306,6 +303,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                     });
 
                     widget.onUpdateMealPlan(_mealPlan);
+                    widget.onUpdateDietItems(widget.dietItems);
                     Navigator.pop(ctx);
                   },
                   child: const Text('Salva'),
@@ -397,7 +395,6 @@ class _MealPlanPageState extends State<MealPlanPage> {
 
               Navigator.pop(ctx);
               
-              // Riapri il dialog per aggiungere l'alimento al pasto
               Future.delayed(const Duration(milliseconds: 100), () {
                 _showItemDialog(mealType, null);
               });
@@ -425,7 +422,12 @@ class _MealPlanPageState extends State<MealPlanPage> {
               setState(() {
                 _mealPlan.plan[_selectedDay]![mealType]!.removeWhere((i) => i.id == item.id);
               });
+              final int idx = widget.dietItems.indexWhere((di) {return di.id == item.dietItemId;});
+              if (idx > -1) {
+                widget.dietItems[idx].weeklyTarget -= item.quantity;
+              }
               widget.onUpdateMealPlan(_mealPlan);
+              widget.onUpdateDietItems(widget.dietItems);
               Navigator.pop(ctx);
             },
             child: const Text('Elimina'),
