@@ -7,6 +7,7 @@ import 'package:dietando/models/models.dart';
 class ShoppingPage extends StatefulWidget {
   final List<DietItem> dietItems;
   final List<ExtraItem> extraItems;
+  final List<ShoppingCategory> categories;
   final Function(List<DietItem>) onUpdateDiet;
   final Function(List<ExtraItem>) onUpdateExtra;
 
@@ -15,7 +16,8 @@ class ShoppingPage extends StatefulWidget {
     required this.dietItems, 
     required this.extraItems,
     required this.onUpdateDiet,
-    required this.onUpdateExtra
+    required this.onUpdateExtra,
+    required this.categories
   });
   
   @override
@@ -40,9 +42,29 @@ class _ShoppingPageState extends State<ShoppingPage> {
     filteredExtraItems = widget.extraItems;
   }
 
+  List<DietItem> _sortByCategory(
+    List<DietItem> dietItems, 
+    List<ShoppingCategory> categories
+  ) {
+    return List<DietItem>.from(dietItems)..sort((a, b) {
+      final categoryA = categories.firstWhere(
+        (cat) => cat.id == a.categoryId,
+        orElse: () => ShoppingCategory(id: '', name: '', priority: 999),
+      );
+      
+      final categoryB = categories.firstWhere(
+        (cat) => cat.id == b.categoryId,
+        orElse: () => ShoppingCategory(id: '', name: '', priority: 999),
+      );
+      
+      return categoryA.priority.compareTo(categoryB.priority);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final missingDiet = filteredDietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
+    final sortedItems = _sortByCategory(missingDiet, widget.categories);
     final pendingExtras = filteredExtraItems.where((i) => !i.isBought).toList();
 
     if (missingDiet.isEmpty && pendingExtras.isEmpty) {
@@ -91,8 +113,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
               "Da Dieta", 
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: missingDiet.isNotEmpty 
-              ? Text("${missingDiet.length} ${missingDiet.length == 1 ? 'articolo' : 'articoli'}")
+            subtitle: sortedItems.isNotEmpty 
+              ? Text("${sortedItems.length} ${sortedItems.length == 1 ? 'articolo' : 'articoli'}")
               : const Text("Tutto completo"),
             children: [
               Filter<DietItem>(
@@ -104,22 +126,15 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   });
                 },
               ),
-              if (missingDiet.isNotEmpty) 
-                ...missingDiet.map((item) {
+              if (sortedItems.isNotEmpty) 
+                ...sortedItems.map((item) {
                   return ShoppingListDietItem(
                     item: item, 
                     onUpdateDiet: (amount) {
                       final index = widget.dietItems.indexWhere((e) => e.id == item.id);
                       if (index != -1) {
                         final updatedList = List<DietItem>.from(widget.dietItems);
-                        updatedList[index] = DietItem(
-                          id: item.id,
-                          name: item.name,
-                          description: item.description,
-                          unit: item.unit,
-                          weeklyTarget: item.weeklyTarget,
-                          currentStock: item.currentStock + amount,
-                        );
+                        updatedList[index] = item.copyWith(currentStock: item.currentStock + amount);
                         widget.onUpdateDiet(updatedList);
                       }
                     }

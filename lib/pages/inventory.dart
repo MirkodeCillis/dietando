@@ -5,9 +5,10 @@ import 'package:uuid/uuid.dart';
 
 class InventoryPage extends StatefulWidget {
   final List<DietItem> items;
+  final List<ShoppingCategory> categories;
   final Function(List<DietItem>) onUpdate;
 
-  const InventoryPage({super.key, required this.items, required this.onUpdate});
+  const InventoryPage({super.key, required this.items, required this.onUpdate, required this.categories});
 
   @override
   State<InventoryPage> createState() => _InventoryPageState();
@@ -129,6 +130,10 @@ class _InventoryPageState extends State<InventoryPage> {
     final stockCtrl = TextEditingController(text: item?.currentStock.toString() ?? '');
     Unit selectedUnit = item?.unit ?? Unit.Grammi;
     final unitCtrl = TextEditingController(text: selectedUnit.name);
+    ShoppingCategory selectedCategory = widget.categories.firstWhere(
+      (cat) {return cat.id == item?.categoryId;},
+      orElse: () {return widget.categories[0];});
+    final categoryCtrl = TextEditingController(text: selectedCategory.name);
     
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: Row(
@@ -198,7 +203,7 @@ class _InventoryPageState extends State<InventoryPage> {
               onSelected: (Unit? unit) {
                 if (unit != null) {
                   selectedUnit = unit;
-                  unitCtrl.text = unit.name;
+                  categoryCtrl.text = unit.name;
                 }
               },
               dropdownMenuEntries: Unit.values
@@ -218,7 +223,27 @@ class _InventoryPageState extends State<InventoryPage> {
                 labelText: "Descrizione",
                 hintText: "Aggiungi una descrizione...",
               ),
-            )
+            ),
+            const SizedBox(height: 16,),
+            DropdownMenu<ShoppingCategory>(
+              expandedInsets: EdgeInsets.zero,
+              initialSelection: selectedCategory,
+              controller: categoryCtrl,
+              requestFocusOnTap: false,
+              label: const Text('Categoria'),
+              onSelected: (ShoppingCategory? category) {
+                if (category != null) {
+                  selectedCategory = category;
+                  unitCtrl.text = category.name;
+                }
+              },
+              dropdownMenuEntries: widget.categories
+                .map((category) => DropdownMenuEntry<ShoppingCategory>(
+                      value: category,
+                      label: category.name,
+                    ))
+                .toList(),
+            ),
           ],
         ),
       ),
@@ -236,6 +261,7 @@ class _InventoryPageState extends State<InventoryPage> {
               weeklyTarget: double.tryParse(targetCtrl.text) ?? 0,
               currentStock: double.tryParse(stockCtrl.text) ?? 0,
               unit: selectedUnit,
+              categoryId: selectedCategory.id
             );
             
             if (item == null) {
