@@ -336,7 +336,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
     final descriptionCtrl = TextEditingController();
     Unit selectedUnit = Unit.Grammi;
     final unitCtrl = TextEditingController(text: selectedUnit.name);
-    ShoppingCategory selectedCategory = widget.categories[0];
+    ShoppingCategory selectedCategory = ShoppingCategory(id: '', name: "Nessuna Categoria", priority: 999);
     final categoryCtrl = TextEditingController(text: selectedCategory.name);
 
     showDialog(
