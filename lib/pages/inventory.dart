@@ -3,17 +3,17 @@ import 'package:dietando/components/filter.dart';
 import 'package:dietando/models/models.dart';
 import 'package:uuid/uuid.dart';
 
-class DietPage extends StatefulWidget {
+class InventoryPage extends StatefulWidget {
   final List<DietItem> items;
   final Function(List<DietItem>) onUpdate;
 
-  const DietPage({super.key, required this.items, required this.onUpdate});
+  const InventoryPage({super.key, required this.items, required this.onUpdate});
 
   @override
-  State<DietPage> createState() => _DietPageState();
+  State<InventoryPage> createState() => _InventoryPageState();
 }
 
-class _DietPageState extends State<DietPage> {
+class _InventoryPageState extends State<InventoryPage> {
   List<DietItem> filteredItems = [];
   final FilterController filterController = FilterController();
 
@@ -24,7 +24,7 @@ class _DietPageState extends State<DietPage> {
   }
 
   @override
-  void didUpdateWidget(covariant DietPage oldWidget) {
+  void didUpdateWidget(covariant InventoryPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     filteredItems = widget.items;
   }
