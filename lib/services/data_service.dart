@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DataService {
   static const String _dietKey = 'diet_items';
   static const String _extraKey = 'extra_items';
+  static const String _categoriesKey = 'categories_items';
+  static const String _settingsKey = 'settings_data';
 
   static Future<void> saveDiet(List<DietItem> items) async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,5 +40,38 @@ class DataService {
     if (encoded == null) return [];
     final List<dynamic> decoded = jsonDecode(encoded);
     return decoded.map((e) => ExtraItem.fromJson(e)).toList();
+  }
+
+  static Future<void> saveCategories(List<ShoppingCategory> items) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(items.map((e) => e.toJson()).toList());
+    await prefs.setString(_categoriesKey, encoded);
+  }
+
+  static Future<List<ShoppingCategory>> loadCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? encoded = prefs.getString(_categoriesKey);
+    if (encoded == null) {
+      return [
+        ShoppingCategory(id: '1', name: 'Carne', priority: 1),
+        ShoppingCategory(id: '2', name: 'Verdure', priority: 2),
+      ];
+    };
+    final List<dynamic> decoded = jsonDecode(encoded);
+    return decoded.map((e) => ShoppingCategory.fromJson(e)).toList();
+  }
+
+  static Future<void> saveSettings(SettingsData settings) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(settings.toJson());
+    await prefs.setString(_settingsKey, encoded);
+  }
+
+  static Future<SettingsData> loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? encoded = prefs.getString(_settingsKey);
+    if (encoded == null) return SettingsData.defaultSettings;
+    final dynamic decoded = jsonDecode(encoded);
+    return SettingsData.fromJson(decoded);
   }
 }
