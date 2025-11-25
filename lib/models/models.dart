@@ -9,6 +9,7 @@ class DietItem {
   double weeklyTarget;
   double currentStock;
   Unit unit;
+  String categoryId;
 
   DietItem({
     required this.id,
@@ -17,6 +18,7 @@ class DietItem {
     required this.weeklyTarget,
     required this.currentStock,
     required this.unit,
+    required this.categoryId
   });
 
   Map<String, dynamic> toJson() => {
@@ -25,6 +27,7 @@ class DietItem {
     'weeklyTarget': weeklyTarget,
     'currentStock': currentStock,
     'unit': unit.index,
+    'categoryId': categoryId
   };
 
   factory DietItem.fromJson(Map<String, dynamic> json) => DietItem(
@@ -34,6 +37,7 @@ class DietItem {
     weeklyTarget: (json['weeklyTarget'] as num).toDouble(),
     currentStock: (json['currentStock'] as num).toDouble(),
     unit: Unit.values[json['unit']],
+    categoryId: json['categoryId']
   );
 
   DietItem copyWith({
@@ -42,7 +46,8 @@ class DietItem {
     String? description,
     double? weeklyTarget,
     double? currentStock,
-    Unit? unit
+    Unit? unit,
+    String? categoryId,
   }) {
     return DietItem(
       id: id ?? this.id,
@@ -50,7 +55,8 @@ class DietItem {
       description: description ?? this.description,
       weeklyTarget: weeklyTarget ?? this.weeklyTarget,
       currentStock: currentStock ?? this.currentStock,
-      unit: unit ?? this.unit
+      unit: unit ?? this.unit,
+      categoryId: categoryId ?? this.categoryId
     );
   }
 }

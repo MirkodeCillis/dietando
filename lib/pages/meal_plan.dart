@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 class MealPlanPage extends StatefulWidget {
   final MealPlan mealPlan;
   final List<DietItem> dietItems;
+  final List<ShoppingCategory> categories;
   final Function(MealPlan) onUpdateMealPlan;
   final Function(List<DietItem>) onUpdateDietItems;
 
@@ -14,6 +15,7 @@ class MealPlanPage extends StatefulWidget {
     required this.dietItems,
     required this.onUpdateMealPlan,
     required this.onUpdateDietItems,
+    required this.categories
   });
 
   @override
@@ -111,7 +113,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.primary,
                       width: 1.5,
                     ),
                     shape: const CircleBorder(),
@@ -157,6 +159,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
         weeklyTarget: 0,
         currentStock: 0,
         unit: Unit.Grammi,
+        categoryId: ''
       ),
     );
 
@@ -333,6 +336,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
     final descriptionCtrl = TextEditingController();
     Unit selectedUnit = Unit.Grammi;
     final unitCtrl = TextEditingController(text: selectedUnit.name);
+    ShoppingCategory selectedCategory = widget.categories[0];
+    final categoryCtrl = TextEditingController(text: selectedCategory.name);
 
     showDialog(
       context: context,
@@ -376,6 +381,26 @@ class _MealPlanPageState extends State<MealPlanPage> {
                   alignLabelWithHint: true,
                 ),
               ),
+              const SizedBox(height: 16,),
+            DropdownMenu<ShoppingCategory>(
+              expandedInsets: EdgeInsets.zero,
+              initialSelection: selectedCategory,
+              controller: categoryCtrl,
+              requestFocusOnTap: false,
+              label: const Text('Categoria'),
+              onSelected: (ShoppingCategory? category) {
+                if (category != null) {
+                  selectedCategory = category;
+                  categoryCtrl.text = category.name;
+                }
+              },
+              dropdownMenuEntries: widget.categories
+                .map((category) => DropdownMenuEntry<ShoppingCategory>(
+                      value: category,
+                      label: category.name,
+                    ))
+                .toList(),
+            ),
             ],
           ),
         ),
@@ -400,6 +425,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
                 weeklyTarget: 0,
                 currentStock: 0,
                 unit: selectedUnit,
+                categoryId: selectedCategory.id
               );
 
               final updatedDietItems = [...widget.dietItems, newDietItem];

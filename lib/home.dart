@@ -74,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Piano Alimentare',
         'page': MealPlanPage(
           mealPlan: _mealPlan,
+          categories: _categoryItems,
           onUpdateMealPlan: (plan) { _mealPlan = plan; _saveMealPlan(); },
           dietItems: _dietItems,
           onUpdateDietItems: (items) { _dietItems = items; _saveDiet(); },
@@ -83,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Inventario Dieta',
         'page': InventoryPage(
           items: _dietItems,
+          categories: _categoryItems,
           onUpdate: (items) { _dietItems = items; _saveDiet(); },
         )
       },
@@ -98,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'page': ShoppingPage(
           dietItems: _dietItems,
           extraItems: _extraItems,
+          categories: _categoryItems,
           onUpdateDiet: (items) { _dietItems = items; _saveDiet(); },
           onUpdateExtra: (items) { _extraItems = items; _saveExtras(); },
         ),
