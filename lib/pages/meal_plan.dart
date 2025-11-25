@@ -27,7 +27,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
   @override
   void initState() {
     super.initState();
-    _selectedDay = DayOfWeek.lunedi;
+    _selectedDay = DayOfWeek.values[DateTime.now().weekday - 1];
     _mealPlan = widget.mealPlan;
   }
 
@@ -52,14 +52,15 @@ class _MealPlanPageState extends State<MealPlanPage> {
   }
 
   Widget _buildDaySelector() {
-    return Container(
+    final int currentDay = DateTime.now().weekday - 1;
+    return SizedBox(
       height: 60,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         itemCount: DayOfWeek.values.length,
         itemBuilder: (context, index) {
-          final day = DayOfWeek.values[index];
+          final day = DayOfWeek.values[(index + currentDay) % DayOfWeek.values.length];
           final isSelected = day == _selectedDay;
           
           return Padding(
@@ -153,7 +154,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
           IconButton(
             icon: Icon(
               Icons.delete_outline,
-              color: Theme.of(context).colorScheme.onError,
+              color: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => _deleteItem(mealType, item),
           ),

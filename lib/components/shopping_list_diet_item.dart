@@ -77,7 +77,6 @@ class _ShoppingListItemDietState extends State<ShoppingListDietItem> {
               IconButton(
                 icon: Icon(
                   Icons.add_shopping_cart,
-                  color: Theme.of(context).colorScheme.primaryContainer,
                 ),
                 onPressed: () {widget.onUpdateDiet(fieldCtrl.text.isEmpty ? missing : num.parse(fieldCtrl.text));},
               )

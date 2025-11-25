@@ -87,7 +87,6 @@ class _InventoryPageState extends State<InventoryPage> {
                                 IconButton(
                                   icon: Icon(
                                     Icons.edit,
-                                    color: Theme.of(context).colorScheme.primaryContainer,
                                   ),
                                   onPressed: () => _showItemDialog(context, item),
                                 ),
@@ -99,7 +98,7 @@ class _InventoryPageState extends State<InventoryPage> {
                               child: LinearProgressIndicator(
                                 value: progress,
                                 minHeight: 8,
-                                color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.onError),
+                                color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.error),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -141,7 +140,7 @@ class _InventoryPageState extends State<InventoryPage> {
             IconButton(
               icon: Icon(
                 Icons.delete_outline, 
-                color: Theme.of(context).colorScheme.onError
+                color: Theme.of(context).colorScheme.error
               ),
               onPressed: () {
                 final int idx = widget.items.indexWhere((e) => e.id == item.id);
