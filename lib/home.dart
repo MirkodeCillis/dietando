@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:dietando/screens/all.dart';
+import 'package:dietando/pages/all.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/services/data_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function(SettingsData) saveSettings;
+
+  const HomeScreen({super.key, required this.saveSettings});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -14,6 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   List<DietItem> _dietItems = [];
   List<ExtraItem> _extraItems = [];
+  List<ShoppingCategory> _categoryItems = [];
+  SettingsData _settings = SettingsData.defaultSettings;
   bool _loading = true;
 
   @override
@@ -25,9 +29,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     final d = await DataService.loadDiet();
     final e = await DataService.loadExtras();
+    final c = await DataService.loadCategories();
+    final s = await DataService.loadSettings();
+
     setState(() {
       _dietItems = d;
       _extraItems = e;
+      _categoryItems = c;
+      _settings = s;
       _loading = false;
     });
   }
@@ -39,6 +48,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _saveExtras() {
     DataService.saveExtras(_extraItems);
+    setState(() {});
+  }
+
+  void _saveCategories() {
+    DataService.saveCategories(_categoryItems);
     setState(() {});
   }
 
@@ -72,11 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       {
         'title': 'Impostazioni',
-        'page':  ShoppingPage(
-          dietItems: _dietItems,
-          extraItems: _extraItems,
-          onUpdateDiet: (items) { _dietItems = items; _saveDiet(); },
-          onUpdateExtra: (items) { _extraItems = items; _saveExtras(); },
+        'page':  SettingsPage(
+          categories: _categoryItems,
+          onCategoriesChanged: (items) { _categoryItems = items; _saveCategories(); },
+          settings: _settings,
+          onSettingsChanged: (settings) { _settings = settings; widget.saveSettings(settings); },
         ),
       },
     ];
