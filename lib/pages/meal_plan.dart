@@ -436,7 +436,9 @@ class _MealPlanPageState extends State<MealPlanPage> {
               });
               final int idx = widget.dietItems.indexWhere((di) => di.id == item.dietItemId);
               if (idx > -1) {
-                widget.dietItems[idx].weeklyTarget -= item.quantity;
+                double qty = widget.dietItems[idx].weeklyTarget - item.quantity;
+                if (qty < 0) qty = 0;
+                widget.dietItems[idx].weeklyTarget = qty;
               }
               widget.onUpdateMealPlan(_mealPlan);
               widget.onUpdateDietItems(widget.dietItems);
