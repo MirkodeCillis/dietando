@@ -6,6 +6,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:dietando/models/models.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
+
 
 class ExportData {
   final List<DietItem> dietItems;
@@ -36,17 +40,18 @@ class ExportData {
       dietItems: (json['dietItems'] as List)
           .map((item) => DietItem.fromJson(item))
           .toList(),
-        extraItems: (json['extraItems'] as List)
+      extraItems: (json['extraItems'] as List)
           .map((item) => ExtraItem.fromJson(item))
           .toList(),
-      categories: (json['categories'] as List).map((item) => ShoppingCategory.fromJson(item)).toList(),
+      categories: (json['categories'] as List)
+          .map((item) => ShoppingCategory.fromJson(item))
+          .toList(),
       mealPlan: MealPlan.fromJson(json['mealPlan']),
     );
   }
 }
 
 class ImportExportService {
-
   // ========== EXPORT ==========
 
   static Future<String> _exportToJson() async {
@@ -54,7 +59,7 @@ class ImportExportService {
     final d = await DataService.loadDiet();
     final e = await DataService.loadExtras();
     final c = await DataService.loadCategories();
-    
+
     final exportData = ExportData(
       dietItems: d,
       extraItems: e,
@@ -85,7 +90,7 @@ class ImportExportService {
 
       return result.status == ShareResultStatus.success;
     } catch (e) {
-      print(e);
+      debugPrint('Errore export share: $e');
       return false;
     }
   }
@@ -94,10 +99,14 @@ class ImportExportService {
     try {
       final jsonString = await _exportToJson();
       final fileName = 'dietando_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-      
+
       final bytes = Uint8List.fromList(utf8.encode(jsonString));
-      
-      // Usa file_picker che gestisce tutte le piattaforme
+
+      if (kIsWeb) {
+        _downloadFileWeb(bytes, fileName);
+        return true;
+      }
+
       final result = await FilePicker.platform.saveFile(
         dialogTitle: 'Salva backup',
         fileName: fileName,
@@ -106,16 +115,35 @@ class ImportExportService {
 
       return result != null;
     } catch (e) {
-      print('Errore export: $e');
+      debugPrint('Errore export file: $e');
       return false;
     }
   }
 
+  static void _downloadFileWeb(Uint8List bytes, String fileName) {
+    final base64Data = base64Encode(bytes);
+    final href = 'data:application/json;base64,$base64Data';
+
+    final anchor = web.HTMLAnchorElement()
+      ..href = href
+      ..download = fileName;
+
+    anchor.click();
+  }
+
   static Future<bool> export() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      return await ImportExportService.exportAndShare();
-    } else {
-      return await ImportExportService.exportToFile();
+    if (kIsWeb) {
+      return await exportToFile();
+    }
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        return await exportAndShare();
+      } else {
+        return await exportToFile();
+      }
+    } catch (e) {
+      debugPrint('Platform check failed, using file picker: $e');
+      return await exportToFile();
     }
   }
 
@@ -126,7 +154,7 @@ class ImportExportService {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       return ExportData.fromJson(json);
     } catch (e) {
-      print(e);
+      debugPrint('Errore import JSON: $e');
       return null;
     }
   }
@@ -152,11 +180,21 @@ class ImportExportService {
         return false;
       }
 
-      DataService.saveMealPlan(exportedData.mealPlan);
-      DataService.saveCategories(exportedData.categories);
-      DataService.saveDiet(exportedData.dietItems);
-      DataService.saveExtras(exportedData.extraItems);
+      await DataService.saveMealPlan(exportedData.mealPlan);
+      await DataService.saveCategories(exportedData.categories);
+      await DataService.saveDiet(exportedData.dietItems);
+      await DataService.saveExtras(exportedData.extraItems);
       return true;
+    } catch (e) {
+      debugPrint('Errore import: $e');
+      return false;
+    }
+  }
+
+  static bool willUseShare() {
+    if (kIsWeb) return false;
+    try {
+      return Platform.isAndroid || Platform.isIOS;
     } catch (e) {
       return false;
     }
