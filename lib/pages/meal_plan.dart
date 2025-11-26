@@ -195,8 +195,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
     _showItemDialog(mealType, item);
   }
 
-  void _showItemDialog(MealType mealType, MealPlanItem? item) {
-    DietItem? selectedDietItem;
+  void _showItemDialog(MealType mealType, MealPlanItem? item, {DietItem? selectedDI}) {
+    DietItem? selectedDietItem = selectedDI;
 
     if (item != null) {
       selectedDietItem = widget.dietItems.firstWhere(
@@ -227,33 +227,42 @@ class _MealPlanPageState extends State<MealPlanPage> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        itemCount: widget.dietItems.length,
-                        itemBuilder: (context, index) {
-                          final dietItem = widget.dietItems[index];
-                          final isSelected = selectedDietItem?.id == dietItem.id;
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemCount: widget.dietItems.length,
+                            itemBuilder: (context, index) {
+                              final dietItem = widget.dietItems[index];
+                              final isSelected = selectedDietItem?.id == dietItem.id;
 
-                          return ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            dense: true,
-                            selected: isSelected,
-                            selectedTileColor: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.3),
-                            title: Text(dietItem.name),
-                            subtitle: Text(dietItem.unit.name),
-                            onTap: () {
-                              setDialogState(() {
-                                selectedDietItem = dietItem;
-                              });
+                              return Container(
+                                color: isSelected 
+                                    ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
+                                    : null,
+                                child: ListTile(
+                                  dense: true,
+                                  title: Text(dietItem.name),
+                                  subtitle: Text(dietItem.unit.name),
+                                  onTap: () {
+                                    setDialogState(() {
+                                      selectedDietItem = dietItem;
+                                    });
+                                  },
+                                ),
+                              );
                             },
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -434,7 +443,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
               Navigator.pop(ctx);
 
               Future.delayed(const Duration(milliseconds: 100), () {
-                _showItemDialog(mealType, null);
+                _showItemDialog(mealType, null, selectedDI: newDietItem);
               });
             },
             child: const Text('Crea e Seleziona'),
