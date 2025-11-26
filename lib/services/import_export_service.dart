@@ -8,7 +8,11 @@ import 'package:share_plus/share_plus.dart';
 import 'package:dietando/models/models.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:web/web.dart' as web;
+
+// Importazione Condizionale: la funzione downloadFileWeb sarà accessibile 
+// come downloadFileWeb() in tutte le piattaforme.
+import 'download_service_stub.dart' 
+    if (dart.library.js_interop) 'download_service_web.dart';
 
 
 class ExportData {
@@ -76,7 +80,8 @@ class ImportExportService {
     try {
       final jsonString = await _exportToJson();
 
-      final directory = await getTemporaryDirectory();
+      // Nota: getTemporaryDirectory è supportato solo su piattaforme native (non web)
+      final directory = await getTemporaryDirectory(); 
       final fileName = 'dietando_backup_${DateTime.now().millisecondsSinceEpoch}.json';
       final file = File('${directory.path}/$fileName');
 
@@ -103,7 +108,8 @@ class ImportExportService {
       final bytes = Uint8List.fromList(utf8.encode(jsonString));
 
       if (kIsWeb) {
-        _downloadFileWeb(bytes, fileName);
+        // Chiama la funzione condizionale, risolta in base al target
+        downloadFileWeb(bytes, fileName); 
         return true;
       }
 
@@ -120,16 +126,7 @@ class ImportExportService {
     }
   }
 
-  static void _downloadFileWeb(Uint8List bytes, String fileName) {
-    final base64Data = base64Encode(bytes);
-    final href = 'data:application/json;base64,$base64Data';
-
-    final anchor = web.HTMLAnchorElement()
-      ..href = href
-      ..download = fileName;
-
-    anchor.click();
-  }
+  // Funzione _downloadFileWeb rimossa da qui!
 
   static Future<bool> export() async {
     if (kIsWeb) {
@@ -143,6 +140,7 @@ class ImportExportService {
       }
     } catch (e) {
       debugPrint('Platform check failed, using file picker: $e');
+      // Qui non è più necessario il check, perché exportToFile gestisce il caso web
       return await exportToFile();
     }
   }
