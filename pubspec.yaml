@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_generative_ai: ^0.4.0
+  flutter_native_splash: ^2.4.7
   shared_preferences: ^2.2.2
   uuid: ^4.3.3
   intl: ^0.20.2
@@ -20,6 +20,8 @@ dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/app_icon.png
 
 dev_dependencies:
   flutter_test:
@@ -45,4 +47,13 @@ flutter_launcher_icons:
   linux:
     generate: true
     image_path: "assets/icon/app_icon.png"
+
+flutter_native_splash:
+  color: "#7692FF"
+  image: assets/icon/app_icon.png
+  android_screen_orientation: portrait
+  ios_content_mode: center
+  web: true
+  web_image_mode: center
+
 
