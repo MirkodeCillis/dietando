@@ -171,8 +171,24 @@ class ImportExportService {
         return false;
       }
 
-      final file = File(result.files.first.path!);
-      final jsonString = await file.readAsString();
+      String jsonString;
+
+      if (kIsWeb) {
+        final bytes = result.files.first.bytes;
+        if (bytes == null) {
+          debugPrint('Errore: bytes null su web');
+          return false;
+        }
+        jsonString = utf8.decode(bytes);
+      } else {
+        final path = result.files.first.path;
+        if (path == null) {
+          debugPrint('Errore: path null');
+          return false;
+        }
+        final file = File(path);
+        jsonString = await file.readAsString();
+      }
 
       final exportedData = await _importFromJson(jsonString);
 

@@ -130,7 +130,7 @@ enum DayOfWeek {
 
 class MealPlanItem {
   final String id;
-  final String dietItemId;
+  String dietItemId;
   final double quantity;
 
   MealPlanItem({
@@ -150,6 +150,18 @@ class MealPlanItem {
         dietItemId: json['dietItemId'],
         quantity: (json['quantity'] as num).toDouble(),
       );
+
+  MealPlanItem copyWith({
+    String? id,
+    String? dietItemId,
+    double? quantity
+  }) {
+    return MealPlanItem(
+      id: id ?? this.id, 
+      dietItemId: dietItemId ?? this.dietItemId, 
+      quantity: quantity ?? this.quantity
+    );
+  }
 }
 
 class MealPlan {

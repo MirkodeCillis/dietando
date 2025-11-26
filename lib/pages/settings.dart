@@ -79,8 +79,6 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 16),
 
           _buildSectionTitle('Lingua'),
-          const SizedBox(height: 16),
-          _buildLanguageSelector(),
         ],
       ),
     );
@@ -260,34 +258,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageSelector() {
-    return Card(
-      child: ListTile(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
-          child: Icon(
-            Icons.language,
-            color: Theme.of(context).colorScheme.onTertiaryContainer,
-          ),
-        ),
-        title: const Text('Lingua'),
-        subtitle: const Text('Italiano'), // TODO: Dinamico
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          // TODO: Implementare selezione lingua
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Funzionalità da implementare'),
-            ),
-          );
-        },
       ),
     );
   }
