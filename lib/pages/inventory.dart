@@ -132,7 +132,7 @@ class _InventoryPageState extends State<InventoryPage> {
     final unitCtrl = TextEditingController(text: selectedUnit.name);
     ShoppingCategory selectedCategory = widget.categories.firstWhere(
       (cat) {return cat.id == item?.categoryId;},
-      orElse: () {return widget.categories[0];});
+      orElse: () {return ShoppingCategory(id: '', name: "Nessuna Categoria", priority: 999);});
     final categoryCtrl = TextEditingController(text: selectedCategory.name);
     
     showDialog(context: context, builder: (ctx) => AlertDialog(

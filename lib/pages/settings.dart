@@ -1,4 +1,5 @@
 import 'package:dietando/models/models.dart';
+import 'package:dietando/services/import_export_service.dart';
 import 'package:flutter/material.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -170,13 +171,15 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Esporta Dati'),
             subtitle: const Text('Salva i tuoi dati in un file'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              // TODO: Implementare esportazione
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funzionalità da implementare'),
-                ),
-              );
+            onTap: () async {
+              bool res = await ImportExportService.export();
+              if (ScaffoldMessenger.of(context).mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(res ? 'Esportazione completata con successo' : 'C\'è stato un errore con l\'esportazione.'),
+                  ),
+                );
+              }
             },
           ),
         ),
@@ -196,13 +199,15 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('Importa Dati'),
             subtitle: const Text('Carica dati da un file'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              // TODO: Implementare importazione
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Funzionalità da implementare'),
-                ),
-              );
+            onTap: () async {
+              bool res = await ImportExportService.importFromFile();
+              if (ScaffoldMessenger.of(context).mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(res ? 'Importazione completata con successo' : 'C\'è stato un errore con l\'importazione.'),
+                  ),
+                );
+              }
             },
           ),
         ),
