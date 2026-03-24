@@ -1,285 +1,296 @@
-import 'package:flutter/material.dart';
 import 'package:dietando/components/filter.dart';
 import 'package:dietando/models/models.dart';
+import 'package:dietando/providers/categories_provider.dart';
+import 'package:dietando/providers/diet_items_provider.dart';
+import 'package:dietando/providers/meal_plan_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-class InventoryPage extends StatefulWidget {
-  final List<DietItem> items;
-  final List<ShoppingCategory> categories;
-  final Function(List<DietItem>) onUpdate;
-
-  const InventoryPage({super.key, required this.items, required this.onUpdate, required this.categories});
+class InventoryPage extends ConsumerStatefulWidget {
+  const InventoryPage({super.key});
 
   @override
-  State<InventoryPage> createState() => _InventoryPageState();
+  ConsumerState<InventoryPage> createState() => _InventoryPageState();
 }
 
-class _InventoryPageState extends State<InventoryPage> {
-  List<DietItem> filteredItems = [];
-  final FilterController filterController = FilterController();
-
-  @override
-  void initState() {
-    super.initState();
-    filteredItems = widget.items;
-  }
-
-  @override
-  void didUpdateWidget(covariant InventoryPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    filteredItems = widget.items;
-  }
+class _InventoryPageState extends ConsumerState<InventoryPage> {
+  List<DietItem> _filteredItems = [];
+  final FilterController _filterController = FilterController();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showItemDialog(context, null),
-        label: const Text("Aggiungi"),
-        icon: const Icon(Icons.add),
+    final itemsAsync = ref.watch(dietItemsProvider);
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+
+    return itemsAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       ),
-      body: widget.items.isEmpty ? 
-        const Center(child: Text("Nessun alimento nel piano.")) : 
-        Column( 
-          children: [
-            Filter<DietItem>(
-              controller: filterController,
-              list: widget.items, 
-              filterBy: (item) => item.name, 
-              updateList: (List<DietItem> resultItems) {
-                setState(() {
-                  filteredItems = resultItems;
-                });
-              }
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                itemCount: filteredItems.length,
-                itemBuilder: (ctx, i) {
-                  final item = filteredItems[i];
-                  final progress = item.weeklyTarget > 0 ? (item.currentStock / item.weeklyTarget).clamp(0.0, 1.0) : 0.0;
-                  
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => _showItemDialog(context, item),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.name, 
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold, 
-                                          fontSize: 16
-                                        )
+      error: (e, _) => Scaffold(
+        body: Center(child: Text('Errore: $e')),
+      ),
+      data: (items) {
+        // Keep filtered list in sync when source changes
+        if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _filteredItems = items);
+          });
+        }
+
+        return Scaffold(
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showItemDialog(context, null, items, categories),
+            label: const Text('Aggiungi'),
+            icon: const Icon(Icons.add),
+          ),
+          body: items.isEmpty
+              ? const Center(child: Text('Nessun alimento nel piano.'))
+              : Column(
+                  children: [
+                    Filter<DietItem>(
+                      controller: _filterController,
+                      list: items,
+                      filterBy: (item) => item.name,
+                      updateList: (resultItems) {
+                        setState(() => _filteredItems = resultItems);
+                      },
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                        itemCount: _filteredItems.length,
+                        itemBuilder: (ctx, i) {
+                          final item = _filteredItems[i];
+                          final progress = item.weeklyTarget > 0
+                              ? (item.currentStock / item.weeklyTarget)
+                                  .clamp(0.0, 1.0)
+                              : 0.0;
+
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 8),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => _showItemDialog(
+                                  context, item, items, categories),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 16),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            item.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.edit),
+                                          onPressed: () => _showItemDialog(
+                                              context, item, items, categories),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: progress,
+                                        minHeight: 8,
+                                        color: progress >= 1
+                                            ? const Color.fromARGB(
+                                                255, 86, 170, 89)
+                                            : (progress > 0.5
+                                                ? const Color.fromARGB(
+                                                    255, 206, 96, 59)
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .onError),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                            'Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}'),
+                                        Text(
+                                            'Stock: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}'),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.edit,
-                                  ),
-                                  onPressed: () => _showItemDialog(context, item),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 8,
-                                color: progress >= 1 ? const Color.fromARGB(255, 86, 170, 89) : (progress > 0.5 ? const Color.fromARGB(255, 206, 96, 59) : Theme.of(context).colorScheme.onError),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}"),
-                                Text("Stock: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}"),
-                              ],
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    )
-                  );
-                }
-              ),
-            )
-          ]
-        )
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 
-  void _showItemDialog(BuildContext context, DietItem? item) {
+  void _showItemDialog(
+    BuildContext context,
+    DietItem? item,
+    List<DietItem> allItems,
+    List<ShoppingCategory> categories,
+  ) {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
-    final descriptionCtrl = TextEditingController(text: item?.description ?? '');
-    final targetCtrl = TextEditingController(text: item?.weeklyTarget.toString() ?? '');
-    final stockCtrl = TextEditingController(text: item?.currentStock.toString() ?? '');
+    final descriptionCtrl =
+        TextEditingController(text: item?.description ?? '');
+    final targetCtrl =
+        TextEditingController(text: item?.weeklyTarget.toString() ?? '');
+    final stockCtrl =
+        TextEditingController(text: item?.currentStock.toString() ?? '');
     Unit selectedUnit = item?.unit ?? Unit.Grammi;
     final unitCtrl = TextEditingController(text: selectedUnit.name);
-    ShoppingCategory selectedCategory = widget.categories.firstWhere(
-      (cat) {return cat.id == item?.categoryId;},
-      orElse: () {return ShoppingCategory(id: '', name: "Nessuna Categoria", priority: 999);});
+    ShoppingCategory selectedCategory = categories.firstWhere(
+      (cat) => cat.id == item?.categoryId,
+      orElse: () =>
+          ShoppingCategory(id: '', name: 'Nessuna Categoria', priority: 999),
+    );
     final categoryCtrl = TextEditingController(text: selectedCategory.name);
-    
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        spacing: 8,
-        children: [
-          Text(item == null ? "Nuovo Alimento" : "Modifica Alimento"),
-          if (item != null) ...[ 
-            IconButton(
-              icon: Icon(
-                Icons.delete_outline, 
-                color: Theme.of(context).colorScheme.error
-              ),
-              onPressed: () {
-                final int idx = widget.items.indexWhere((e) => e.id == item.id);
-                if (idx != -1) {
-                  final newList = List<DietItem>.from(widget.items)..removeAt(idx);
-                  widget.onUpdate(newList);
-                  filterController.reset();
-                }
-                Navigator.pop(ctx);
-              },
-            ),
-          ]
-        ],
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextField(
-              controller: nameCtrl, 
-              decoration: const InputDecoration(
-                labelText: "Nome"
-              )
-            ),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(child: TextField(
-                  controller: targetCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: "Target"
-                    )
-                  )
+            Text(item == null ? 'Nuovo Alimento' : 'Modifica Alimento'),
+            if (item != null)
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: stockCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Stock"
-                    )
-                  )
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            DropdownMenu<Unit>(
-              expandedInsets: EdgeInsets.zero,
-              initialSelection: selectedUnit,
-              controller: unitCtrl,
-              requestFocusOnTap: false,
-              label: const Text('Unità di Misura'),
-              onSelected: (Unit? unit) {
-                if (unit != null) {
-                  selectedUnit = unit;
-                  categoryCtrl.text = unit.name;
-                }
-              },
-              dropdownMenuEntries: Unit.values
-                .map((unit) => DropdownMenuEntry<Unit>(
-                      value: unit,
-                      label: unit.name,
-                    ))
-                .toList(),
-            ),
-            const SizedBox(height: 16,),
-            TextField(
-              controller: descriptionCtrl,
-              minLines: 1,
-              maxLines: 4,
-              keyboardType: TextInputType.multiline,
-              decoration: const InputDecoration(
-                labelText: "Descrizione",
-                hintText: "Aggiungi una descrizione...",
+                onPressed: () {
+                  ref.read(dietItemsProvider.notifier).delete(item.id);
+                  ref
+                      .read(mealPlanProvider.notifier)
+                      .removeItemsByDietItemId(item.id);
+                  _filterController.reset();
+                  Navigator.pop(ctx);
+                },
               ),
-            ),
-            const SizedBox(height: 16,),
-            DropdownMenu<ShoppingCategory>(
-              expandedInsets: EdgeInsets.zero,
-              initialSelection: selectedCategory,
-              controller: categoryCtrl,
-              requestFocusOnTap: false,
-              label: const Text('Categoria'),
-              onSelected: (ShoppingCategory? category) {
-                if (category != null) {
-                  selectedCategory = category;
-                  unitCtrl.text = category.name;
-                }
-              },
-              dropdownMenuEntries: widget.categories
-                .map((category) => DropdownMenuEntry<ShoppingCategory>(
-                      value: category,
-                      label: category.name,
-                    ))
-                .toList(),
-            ),
           ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx), 
-          child: const Text("Annulla")
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Nome'),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: targetCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Target'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: stockCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Stock'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              DropdownMenu<Unit>(
+                expandedInsets: EdgeInsets.zero,
+                initialSelection: selectedUnit,
+                controller: unitCtrl,
+                requestFocusOnTap: false,
+                label: const Text('Unità di Misura'),
+                onSelected: (Unit? unit) {
+                  if (unit != null) selectedUnit = unit;
+                },
+                dropdownMenuEntries: Unit.values
+                    .map((unit) => DropdownMenuEntry<Unit>(
+                          value: unit,
+                          label: unit.name,
+                        ))
+                    .toList(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descriptionCtrl,
+                minLines: 1,
+                maxLines: 4,
+                keyboardType: TextInputType.multiline,
+                decoration: const InputDecoration(
+                  labelText: 'Descrizione',
+                  hintText: 'Aggiungi una descrizione...',
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownMenu<ShoppingCategory>(
+                expandedInsets: EdgeInsets.zero,
+                initialSelection: selectedCategory,
+                controller: categoryCtrl,
+                requestFocusOnTap: false,
+                label: const Text('Categoria'),
+                onSelected: (ShoppingCategory? category) {
+                  if (category != null) selectedCategory = category;
+                },
+                dropdownMenuEntries: categories
+                    .map((cat) => DropdownMenuEntry<ShoppingCategory>(
+                          value: cat,
+                          label: cat.name,
+                        ))
+                    .toList(),
+              ),
+            ],
+          ),
         ),
-        FilledButton(
-          onPressed: () {
-            final newItem = DietItem(
-              id: item?.id ?? const Uuid().v4(),
-              name: nameCtrl.text,
-              description: descriptionCtrl.text,
-              weeklyTarget: double.tryParse(targetCtrl.text) ?? 0,
-              currentStock: double.tryParse(stockCtrl.text) ?? 0,
-              unit: selectedUnit,
-              categoryId: selectedCategory.id
-            );
-            
-            if (item == null) {
-              widget.onUpdate([...widget.items, newItem]);
-            } else {
-              final index = widget.items.indexWhere((e) => e.id == item.id);
-              if (index != -1) {
-                final newList = List<DietItem>.from(widget.items);
-                newList[index] = newItem;
-                widget.onUpdate(newList);
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annulla'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final newItem = DietItem(
+                id: item?.id ?? const Uuid().v4(),
+                name: nameCtrl.text,
+                description: descriptionCtrl.text,
+                weeklyTarget: double.tryParse(targetCtrl.text) ?? 0,
+                currentStock: double.tryParse(stockCtrl.text) ?? 0,
+                unit: selectedUnit,
+                categoryId: selectedCategory.id,
+              );
+
+              if (item == null) {
+                ref.read(dietItemsProvider.notifier).add(newItem);
+              } else {
+                ref.read(dietItemsProvider.notifier).edit(newItem);
               }
-            }
-            filterController.reset();
-            Navigator.pop(ctx);
-          },
-          child: const Text("Salva")),
+              _filterController.reset();
+              Navigator.pop(ctx);
+            },
+            child: const Text('Salva'),
+          ),
         ],
-      )
+      ),
     );
   }
 }

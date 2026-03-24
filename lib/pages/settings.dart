@@ -1,42 +1,27 @@
 import 'package:dietando/models/models.dart';
+import 'package:dietando/providers/categories_provider.dart';
+import 'package:dietando/providers/settings_provider.dart';
 import 'package:dietando/services/import_export_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SettingsPage extends StatefulWidget {
-  final SettingsData settings;
-  final Function(SettingsData) onSettingsChanged;
-  final List<ShoppingCategory> categories;
-  final Function(List<ShoppingCategory>) onCategoriesChanged;
-
-  const SettingsPage({
-    super.key,
-    required this.settings,
-    required this.onSettingsChanged,
-    required this.categories,
-    required this.onCategoriesChanged,
-  });
+class SettingsPage extends ConsumerStatefulWidget {
+  const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  late ThemeMode _currentThemeMode;
-  late List<ShoppingCategory> _categories;
-
-  @override
-  void initState() {
-    super.initState();
-    _categories = List.from(widget.categories);
-    _currentThemeMode = widget.settings.themeMode == 'dark'
-        ? ThemeMode.dark
-        : widget.settings.themeMode == 'light' 
-        ? ThemeMode.light
-        : ThemeMode.system;
-  }
-
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final settingsAsync = ref.watch(settingsProvider);
+
+    final categories = categoriesAsync.valueOrNull ?? [];
+    final settings = settingsAsync.valueOrNull ?? SettingsData.defaultSettings;
+    final currentThemeMode = settings.themeModeEnum;
+
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -50,10 +35,10 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildCategoriesList(),
+          _buildCategoriesList(categories),
           const SizedBox(height: 8),
           FilledButton.tonalIcon(
-            onPressed: _showAddCategoryDialog,
+            onPressed: () => _showCategoryDialog(categories, null, null),
             icon: const Icon(Icons.add),
             label: const Text('Aggiungi Categoria'),
           ),
@@ -72,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           _buildSectionTitle('Aspetto'),
           const SizedBox(height: 16),
-          _buildThemeSelector(),
+          _buildThemeSelector(currentThemeMode, settings),
 
           const SizedBox(height: 32),
           const Divider(),
@@ -93,29 +78,25 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildCategoriesList() {
+  Widget _buildCategoriesList(List<ShoppingCategory> categories) {
     return Card(
       child: ReorderableListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: _categories.length,
+        itemCount: categories.length,
         onReorder: (oldIndex, newIndex) {
-          setState(() {
-            if (oldIndex < newIndex) {
-              newIndex -= 1;
-            }
-            final item = _categories.removeAt(oldIndex);
-            _categories.insert(newIndex, item);
-            
-            for (int i = 0; i < _categories.length; i++) {
-              _categories[i] = _categories[i].copyWith(priority: i);
-            }
-            
-            widget.onCategoriesChanged(_categories);
-          });
+          if (oldIndex < newIndex) newIndex -= 1;
+          final reordered = List<ShoppingCategory>.from(categories);
+          final item = reordered.removeAt(oldIndex);
+          reordered.insert(newIndex, item);
+          final updated = [
+            for (int i = 0; i < reordered.length; i++)
+              reordered[i].copyWith(priority: i),
+          ];
+          ref.read(categoriesProvider.notifier).reorder(updated);
         },
         itemBuilder: (context, index) {
-          final category = _categories[index];
+          final category = categories[index];
           return ReorderableDragStartListener(
             key: ValueKey(category.id),
             index: index,
@@ -132,19 +113,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => _showEditCategoryDialog(category, index),
+                      onPressed: () =>
+                          _showCategoryDialog(categories, category, index),
                     ),
                     IconButton(
                       icon: Icon(
                         Icons.delete_outline,
                         color: Theme.of(context).colorScheme.error,
                       ),
-                      onPressed: () => _deleteCategory(index),
+                      onPressed: () => _deleteCategory(category),
                     ),
                   ],
                 ),
               ),
-            )
+            ),
           );
         },
       ),
@@ -170,11 +152,15 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Salva i tuoi dati in un file'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              bool res = await ImportExportService.export();
-              if (ScaffoldMessenger.of(context).mounted) {
+              final res = await ImportExportService.export(ref);
+              if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(res ? 'Esportazione completata con successo' : 'C\'è stato un errore con l\'esportazione.'),
+                    content: Text(
+                      res
+                          ? 'Esportazione completata con successo'
+                          : "C'è stato un errore con l'esportazione.",
+                    ),
                   ),
                 );
               }
@@ -198,11 +184,15 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: const Text('Carica dati da un file'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
-              bool res = await ImportExportService.importFromFile();
-              if (ScaffoldMessenger.of(context).mounted) {
+              final res = await ImportExportService.importFromFile(ref);
+              if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(res ? 'Importazione completata con successo' : 'C\'è stato un errore con l\'importazione.'),
+                    content: Text(
+                      res
+                          ? 'Importazione completata con successo'
+                          : "C'è stato un errore con l'importazione.",
+                    ),
                   ),
                 );
               }
@@ -213,26 +203,28 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildThemeSelector() {
+  Widget _buildThemeSelector(ThemeMode currentThemeMode, SettingsData settings) {
     return Card(
       child: RadioGroup<ThemeMode>(
-        groupValue: _currentThemeMode,
+        groupValue: currentThemeMode,
         onChanged: (value) {
           if (value != null) {
-            widget.onSettingsChanged(SettingsData(
-              themeMode: value == ThemeMode.dark ? 'dark' : value == ThemeMode.light ? 'light' : 'system',
-              language: widget.settings.language
-            ));
-            setState(() {
-              _currentThemeMode = value;
-            });
+            final modeStr = value == ThemeMode.dark
+                ? 'dark'
+                : value == ThemeMode.light
+                    ? 'light'
+                    : 'system';
+            ref.read(settingsProvider.notifier).setThemeMode(modeStr);
           }
         },
         child: Column(
           children: [
             RadioListTile<ThemeMode>(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12), bottom: Radius.zero),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(12),
+                  bottom: Radius.zero,
+                ),
               ),
               value: ThemeMode.system,
               title: const Text('Sistema'),
@@ -240,16 +232,19 @@ class _SettingsPageState extends State<SettingsPage> {
               secondary: const Icon(Icons.brightness_auto),
             ),
             const Divider(height: 1),
-            RadioListTile<ThemeMode>(
+            const RadioListTile<ThemeMode>(
               value: ThemeMode.light,
-              title: const Text('Chiaro'),
-              subtitle: const Text('Tema chiaro'),
-              secondary: const Icon(Icons.light_mode),
+              title: Text('Chiaro'),
+              subtitle: Text('Tema chiaro'),
+              secondary: Icon(Icons.light_mode),
             ),
             const Divider(height: 1),
             RadioListTile<ThemeMode>(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.zero, bottom: Radius.circular(12)),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.zero,
+                  bottom: Radius.circular(12),
+                ),
               ),
               value: ThemeMode.dark,
               title: const Text('Scuro'),
@@ -262,77 +257,69 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showAddCategoryDialog() {
-    _showCategoryDialog(null, null);
-  }
-
-  void _showEditCategoryDialog(ShoppingCategory category, int index) {
-    _showCategoryDialog(category, index);
-  }
-
-  void _showCategoryDialog(ShoppingCategory? category, int? index) {
+  void _showCategoryDialog(
+    List<ShoppingCategory> categories,
+    ShoppingCategory? category,
+    int? index,
+  ) {
     final nameCtrl = TextEditingController(text: category?.name ?? '');
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(category == null ? 'Nuova Categoria' : 'Modifica Categoria'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome Categoria',
-                    hintText: 'Es. Frutta e Verdura',
-                  ),
+      builder: (ctx) => AlertDialog(
+        title: Text(category == null ? 'Nuova Categoria' : 'Modifica Categoria'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nome Categoria',
+                  hintText: 'Es. Frutta e Verdura',
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Annulla'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (nameCtrl.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Inserisci un nome')),
-                  );
-                  return;
-                }
-
-                final newCategory = ShoppingCategory(
-                  id: category?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: nameCtrl.text,
-                  priority: category?.priority ?? _categories.length,
-                );
-
-                setState(() {
-                  if (index != null) {
-                    _categories[index] = newCategory;
-                  } else {
-                    _categories.add(newCategory);
-                  }
-                  widget.onCategoriesChanged(_categories);
-                });
-
-                Navigator.pop(ctx);
-              },
-              child: const Text('Salva'),
-            ),
-          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annulla'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (nameCtrl.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Inserisci un nome')),
+                );
+                return;
+              }
+
+              final newCategory = ShoppingCategory(
+                id: category?.id ??
+                    DateTime.now().millisecondsSinceEpoch.toString(),
+                name: nameCtrl.text,
+                priority: category?.priority ?? categories.length,
+              );
+
+              if (category == null) {
+                ref.read(categoriesProvider.notifier).add(newCategory);
+              } else {
+                ref.read(categoriesProvider.notifier).edit(newCategory);
+              }
+
+              Navigator.pop(ctx);
+            },
+            child: const Text('Salva'),
+          ),
+        ],
       ),
     );
   }
 
-  void _deleteCategory(int index) {
+  void _deleteCategory(ShoppingCategory category) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -345,13 +332,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           FilledButton(
             onPressed: () {
-              setState(() {
-                _categories.removeAt(index);
-                for (int i = 0; i < _categories.length; i++) {
-                  _categories[i] = _categories[i].copyWith(priority: i);
-                }
-                widget.onCategoriesChanged(_categories);
-              });
+              ref.read(categoriesProvider.notifier).delete(category.id);
               Navigator.pop(ctx);
             },
             child: const Text('Elimina'),

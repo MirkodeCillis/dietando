@@ -1,71 +1,68 @@
+import 'package:dietando/components/filter.dart';
 import 'package:dietando/components/shopping_list_diet_item.dart';
 import 'package:dietando/components/shopping_list_extra_item.dart';
-import 'package:flutter/material.dart';
-import 'package:dietando/components/filter.dart';
 import 'package:dietando/models/models.dart';
+import 'package:dietando/providers/categories_provider.dart';
+import 'package:dietando/providers/diet_items_provider.dart';
+import 'package:dietando/providers/extra_items_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ShoppingPage extends StatefulWidget {
-  final List<DietItem> dietItems;
-  final List<ExtraItem> extraItems;
-  final List<ShoppingCategory> categories;
-  final Function(List<DietItem>) onUpdateDiet;
-  final Function(List<ExtraItem>) onUpdateExtra;
+class ShoppingPage extends ConsumerStatefulWidget {
+  const ShoppingPage({super.key});
 
-  const ShoppingPage({
-    super.key, 
-    required this.dietItems, 
-    required this.extraItems,
-    required this.onUpdateDiet,
-    required this.onUpdateExtra,
-    required this.categories
-  });
-  
   @override
-  State<ShoppingPage> createState() => _ShoppingPageState();
+  ConsumerState<ShoppingPage> createState() => _ShoppingPageState();
 }
 
-class _ShoppingPageState extends State<ShoppingPage> {
-  List<ExtraItem> filteredExtraItems = [];
-  List<DietItem> filteredDietItems = [];
-
-  @override
-  void initState() {
-    super.initState();
-    filteredDietItems = widget.dietItems;
-    filteredExtraItems = widget.extraItems;
-  }
-
-  @override
-  void didUpdateWidget(covariant ShoppingPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    filteredDietItems = widget.dietItems;
-    filteredExtraItems = widget.extraItems;
-  }
+class _ShoppingPageState extends ConsumerState<ShoppingPage> {
+  List<DietItem> _filteredDietItems = [];
+  List<ExtraItem> _filteredExtraItems = [];
+  final FilterController _dietFilterController = FilterController();
+  final FilterController _extraFilterController = FilterController();
 
   List<DietItem> _sortByCategory(
-    List<DietItem> dietItems, 
-    List<ShoppingCategory> categories
+    List<DietItem> dietItems,
+    List<ShoppingCategory> categories,
   ) {
-    return List<DietItem>.from(dietItems)..sort((a, b) {
-      final categoryA = categories.firstWhere(
-        (cat) => cat.id == a.categoryId,
-        orElse: () => ShoppingCategory(id: '', name: '', priority: 999),
-      );
-      
-      final categoryB = categories.firstWhere(
-        (cat) => cat.id == b.categoryId,
-        orElse: () => ShoppingCategory(id: '', name: '', priority: 999),
-      );
-      
-      return categoryA.priority.compareTo(categoryB.priority);
-    });
+    return List<DietItem>.from(dietItems)
+      ..sort((a, b) {
+        final catA = categories.firstWhere(
+          (cat) => cat.id == a.categoryId,
+          orElse: () =>
+              ShoppingCategory(id: '', name: '', priority: 999),
+        );
+        final catB = categories.firstWhere(
+          (cat) => cat.id == b.categoryId,
+          orElse: () =>
+              ShoppingCategory(id: '', name: '', priority: 999),
+        );
+        return catA.priority.compareTo(catB.priority);
+      });
   }
 
   @override
   Widget build(BuildContext context) {
-    final missingDiet = filteredDietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
-    final sortedItems = _sortByCategory(missingDiet, widget.categories);
-    final pendingExtras = filteredExtraItems.where((i) => !i.isBought).toList();
+    final dietItems = ref.watch(dietItemsProvider).valueOrNull ?? [];
+    final extraItems = ref.watch(extraItemsProvider).valueOrNull ?? [];
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+
+    // Sync filtered lists when source changes
+    if (_filteredDietItems.length != dietItems.length) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() => _filteredDietItems = dietItems),
+      );
+    }
+    if (_filteredExtraItems.length != extraItems.length) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() => _filteredExtraItems = extraItems),
+      );
+    }
+
+    final missingDiet =
+        _filteredDietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
+    final sortedDiet = _sortByCategory(missingDiet, categories);
+    final pendingExtras = _filteredExtraItems.where((i) => !i.isBought).toList();
 
     if (missingDiet.isEmpty && pendingExtras.isEmpty) {
       return Center(
@@ -73,15 +70,18 @@ class _ShoppingPageState extends State<ShoppingPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.check_circle_outline, 
-              size: 100, 
+              Icons.check_circle_outline,
+              size: 100,
               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
-              "Tutto fatto!", 
+              'Tutto fatto!',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -102,58 +102,51 @@ class _ShoppingPageState extends State<ShoppingPage> {
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor:
+                  Theme.of(context).colorScheme.primaryContainer,
               child: Icon(
-                Icons.restaurant, 
+                Icons.restaurant,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
                 size: 20,
               ),
             ),
             title: const Text(
-              "Da Dieta", 
+              'Da Dieta',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: sortedItems.isNotEmpty 
-              ? Text("${sortedItems.length} ${sortedItems.length == 1 ? 'articolo' : 'articoli'}")
-              : const Text("Tutto completo"),
+            subtitle: sortedDiet.isNotEmpty
+                ? Text(
+                    '${sortedDiet.length} ${sortedDiet.length == 1 ? 'articolo' : 'articoli'}')
+                : const Text('Tutto completo'),
             children: [
               Filter<DietItem>(
-                list: widget.dietItems, 
-                filterBy: (item) => item.name, 
-                updateList: (List<DietItem> resultItems) {
-                  setState(() {
-                    filteredDietItems = resultItems;
-                  });
+                controller: _dietFilterController,
+                list: dietItems,
+                filterBy: (item) => item.name,
+                updateList: (resultItems) {
+                  setState(() => _filteredDietItems = resultItems);
                 },
               ),
-              if (sortedItems.isNotEmpty) 
-                ...sortedItems.map((item) {
-                  return ShoppingListDietItem(
-                    item: item, 
-                    onUpdateDiet: (amount) {
-                      final index = widget.dietItems.indexWhere((e) => e.id == item.id);
-                      if (index != -1) {
-                        final updatedList = List<DietItem>.from(widget.dietItems);
-                        updatedList[index] = item.copyWith(currentStock: item.currentStock + amount);
-                        widget.onUpdateDiet(updatedList);
-                      }
-                    }
-                  );
-                })
-              else 
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Center(
-                    child: Text("Nessun alimento da comprare!"),
-                  ),
+              if (sortedDiet.isNotEmpty)
+                ...sortedDiet.map((item) => ShoppingListDietItem(
+                      item: item,
+                      onUpdateDiet: (amount) {
+                        ref.read(dietItemsProvider.notifier).edit(
+                              item.copyWith(
+                                  currentStock: item.currentStock + amount),
+                            );
+                      },
+                    ))
+              else
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: Text('Nessun alimento da comprare!')),
                 ),
               const SizedBox(height: 8),
             ],
           ),
         ),
-        
         const SizedBox(height: 16),
-        
         Card(
           child: ExpansionTile(
             initiallyExpanded: true,
@@ -164,7 +157,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              backgroundColor:
+                  Theme.of(context).colorScheme.secondaryContainer,
               child: Icon(
                 Icons.local_pizza,
                 color: Theme.of(context).colorScheme.onSecondaryContainer,
@@ -172,47 +166,35 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
             ),
             title: const Text(
-              "Spese Extra", 
+              'Spese Extra',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: pendingExtras.isNotEmpty 
-              ? Text("${pendingExtras.length} ${pendingExtras.length == 1 ? 'articolo' : 'articoli'}")
-              : const Text("Tutto comprato"),
+            subtitle: pendingExtras.isNotEmpty
+                ? Text(
+                    '${pendingExtras.length} ${pendingExtras.length == 1 ? 'articolo' : 'articoli'}')
+                : const Text('Tutto comprato'),
             children: [
               Filter<ExtraItem>(
-                list: widget.extraItems, 
-                filterBy: (item) => item.name, 
-                updateList: (List<ExtraItem> resultItems) {
-                  setState(() {
-                    filteredExtraItems = resultItems;
-                  });
+                controller: _extraFilterController,
+                list: extraItems,
+                filterBy: (item) => item.name,
+                updateList: (resultItems) {
+                  setState(() => _filteredExtraItems = resultItems);
                 },
               ),
-              if (pendingExtras.isNotEmpty) 
-                ...pendingExtras.map((item) {
-                  return ShoppingListExtraItem(
-                    item: item, 
-                    onUpdateExtra: () {
-                      final index = widget.extraItems.indexWhere((e) => e.id == item.id);
-                      if (index != -1) {
-                        final updatedList = List<ExtraItem>.from(widget.extraItems);
-                        updatedList[index] = ExtraItem(
-                          id: item.id,
-                          name: item.name,
-                          quantity: item.quantity,
-                          isBought: true,
-                        );
-                        widget.onUpdateExtra(updatedList);
-                      }
-                    }
-                  );
-                })
-              else 
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Center(
-                    child: Text("Nessun extra da comprare!"),
-                  ),
+              if (pendingExtras.isNotEmpty)
+                ...pendingExtras.map((item) => ShoppingListExtraItem(
+                      item: item,
+                      onUpdateExtra: () {
+                        ref.read(extraItemsProvider.notifier).edit(
+                              item.copyWith(isBought: true),
+                            );
+                      },
+                    ))
+              else
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: Text('Nessun extra da comprare!')),
                 ),
               const SizedBox(height: 8),
             ],

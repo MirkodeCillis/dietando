@@ -1,54 +1,54 @@
-import 'package:flutter/material.dart';
 import 'package:dietando/models/models.dart';
+import 'package:dietando/providers/categories_provider.dart';
+import 'package:dietando/providers/diet_items_provider.dart';
+import 'package:dietando/providers/meal_plan_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-class MealPlanPage extends StatefulWidget {
-  final MealPlan mealPlan;
-  final List<DietItem> dietItems;
-  final List<ShoppingCategory> categories;
-  final Function(MealPlan) onUpdateMealPlan;
-  final Function(List<DietItem>) onUpdateDietItems;
-
-  const MealPlanPage({
-    super.key,
-    required this.mealPlan,
-    required this.dietItems,
-    required this.onUpdateMealPlan,
-    required this.onUpdateDietItems,
-    required this.categories
-  });
+class MealPlanPage extends ConsumerStatefulWidget {
+  const MealPlanPage({super.key});
 
   @override
-  State<MealPlanPage> createState() => _MealPlanPageState();
+  ConsumerState<MealPlanPage> createState() => _MealPlanPageState();
 }
 
-class _MealPlanPageState extends State<MealPlanPage> {
+class _MealPlanPageState extends ConsumerState<MealPlanPage> {
   late DayOfWeek _selectedDay;
-  late MealPlan _mealPlan;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = DayOfWeek.values[DateTime.now().weekday - 1];
-    _mealPlan = widget.mealPlan;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          _buildDaySelector(),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: MealType.values.map((mealType) {
-                return _buildMealSection(mealType);
-              }).toList(),
+    final mealPlanAsync = ref.watch(mealPlanProvider);
+
+    return mealPlanAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        body: Center(child: Text('Errore: $e')),
+      ),
+      data: (mealPlan) => Scaffold(
+        body: Column(
+          children: [
+            _buildDaySelector(),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: MealType.values
+                    .map((mealType) =>
+                        _buildMealSection(mealType, mealPlan))
+                    .toList(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -62,7 +62,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         itemCount: DayOfWeek.values.length,
         itemBuilder: (context, index) {
-          final day = DayOfWeek.values[(index + currentDay) % DayOfWeek.values.length];
+          final day = DayOfWeek
+              .values[(index + currentDay) % DayOfWeek.values.length];
           final isSelected = day == _selectedDay;
 
           return Padding(
@@ -71,9 +72,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
               label: Text(day.displayName),
               selected: isSelected,
               onSelected: (selected) {
-                setState(() {
-                  _selectedDay = day;
-                });
+                setState(() => _selectedDay = day);
               },
             ),
           );
@@ -82,8 +81,9 @@ class _MealPlanPageState extends State<MealPlanPage> {
     );
   }
 
-  Widget _buildMealSection(MealType mealType) {
-    final items = _mealPlan.plan[_selectedDay]![mealType]!;
+  Widget _buildMealSection(MealType mealType, MealPlan mealPlan) {
+    final items = mealPlan.plan[_selectedDay]?[mealType] ?? [];
+    final dietItems = ref.watch(dietItemsProvider).valueOrNull ?? [];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -92,7 +92,8 @@ class _MealPlanPageState extends State<MealPlanPage> {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor:
+                  Theme.of(context).colorScheme.primaryContainer,
               child: Icon(
                 mealType.icon,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -108,7 +109,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => _showAddItemDialog(mealType),
+                  onPressed: () => _showItemDialog(mealType, null, dietItems),
                 ),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
@@ -120,12 +121,9 @@ class _MealPlanPageState extends State<MealPlanPage> {
                     padding: const EdgeInsets.all(18),
                     minimumSize: Size.zero,
                   ),
-                  onPressed: () => _consumeMeal(mealType),
-                  child: const Icon(
-                    Icons.dinner_dining,
-                    size: 18,
-                  ),
-                )
+                  onPressed: () => _consumeMeal(mealType, items, dietItems),
+                  child: const Icon(Icons.dinner_dining, size: 18),
+                ),
               ],
             ),
           ),
@@ -136,21 +134,29 @@ class _MealPlanPageState extends State<MealPlanPage> {
                 child: Text(
                   'Nessun alimento inserito',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
                   ),
                 ),
               ),
             )
           else
-            ...items.map((item) => _buildMealItem(mealType, item)),
+            ...items.map((item) =>
+                _buildMealItem(mealType, item, dietItems)),
           const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildMealItem(MealType mealType, MealPlanItem item) {
-    final dietItem = widget.dietItems.firstWhere(
+  Widget _buildMealItem(
+    MealType mealType,
+    MealPlanItem item,
+    List<DietItem> dietItems,
+  ) {
+    final dietItem = dietItems.firstWhere(
       (di) => di.id == item.dietItemId,
       orElse: () => DietItem(
         id: '',
@@ -159,7 +165,7 @@ class _MealPlanPageState extends State<MealPlanPage> {
         weeklyTarget: 0,
         currentStock: 0,
         unit: Unit.Grammi,
-        categoryId: ''
+        categoryId: '',
       ),
     );
 
@@ -167,41 +173,40 @@ class _MealPlanPageState extends State<MealPlanPage> {
       dense: true,
       leading: const Icon(Icons.restaurant, size: 20),
       title: Text(dietItem.name),
-      subtitle: Text('${item.quantity.toStringAsFixed(0)} ${dietItem.unit.name}'),
+      subtitle: Text(
+          '${item.quantity.toStringAsFixed(0)} ${dietItem.unit.name}'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => _showEditItemDialog(mealType, item),
+            onPressed: () =>
+                _showEditItemDialog(mealType, item, dietItems),
           ),
           IconButton(
             icon: Icon(
               Icons.delete_outline,
               color: Theme.of(context).colorScheme.error,
             ),
-            onPressed: () => _deleteItem(mealType, item),
+            onPressed: () => _deleteItem(mealType, item, dietItems),
           ),
         ],
       ),
     );
   }
 
-  void _showAddItemDialog(MealType mealType) {
-    _showItemDialog(mealType, null);
-  }
-
-  void _showEditItemDialog(MealType mealType, MealPlanItem item) {
-    _showItemDialog(mealType, item);
-  }
-
-  void _showItemDialog(MealType mealType, MealPlanItem? item, {DietItem? selectedDI}) {
-    DietItem? selectedDietItem = selectedDI;
+  void _showItemDialog(
+    MealType mealType,
+    MealPlanItem? item,
+    List<DietItem> dietItems, {
+    DietItem? preselected,
+  }) {
+    DietItem? selectedDietItem = preselected;
 
     if (item != null) {
-      selectedDietItem = widget.dietItems.firstWhere(
+      selectedDietItem = dietItems.firstWhere(
         (di) => di.id == item.dietItemId,
-        orElse: () => widget.dietItems.first,
+        orElse: () => dietItems.isNotEmpty ? dietItems.first : dietItems.first,
       );
     }
 
@@ -211,142 +216,169 @@ class _MealPlanPageState extends State<MealPlanPage> {
 
     showDialog(
       context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(item == null ? 'Aggiungi Alimento' : 'Modifica Alimento'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Seleziona alimento:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: SizedBox(
-                          height: 200,
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount: widget.dietItems.length,
-                            itemBuilder: (context, index) {
-                              final dietItem = widget.dietItems[index];
-                              final isSelected = selectedDietItem?.id == dietItem.id;
-
-                              return Container(
-                                color: isSelected 
-                                    ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3)
-                                    : null,
-                                child: ListTile(
-                                  dense: true,
-                                  title: Text(dietItem.name),
-                                  subtitle: Text(dietItem.unit.name),
-                                  onTap: () {
-                                    setDialogState(() {
-                                      selectedDietItem = dietItem;
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _showCreateNewDietItemDialog(mealType);
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text('Crea Nuovo Alimento'),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 40),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: quantityCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        labelText: 'Quantità',
-                        suffix: Text(selectedDietItem?.unit.name ?? ''),
-                      ),
-                    ),
-                  ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(
+              item == null ? 'Aggiungi Alimento' : 'Modifica Alimento'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Seleziona alimento:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Annulla'),
+                const SizedBox(height: 12),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withValues(alpha: 0.3),
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: dietItems.length,
+                        itemBuilder: (context, index) {
+                          final di = dietItems[index];
+                          final isSelected =
+                              selectedDietItem?.id == di.id;
+                          return Container(
+                            color: isSelected
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer
+                                    .withValues(alpha: 0.3)
+                                : null,
+                            child: ListTile(
+                              dense: true,
+                              title: Text(di.name),
+                              subtitle: Text(di.unit.name),
+                              onTap: () => setDialogState(
+                                  () => selectedDietItem = di),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                 ),
-                FilledButton(
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
                   onPressed: () {
-                    if (selectedDietItem == null || quantityCtrl.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Seleziona un alimento e inserisci la quantità'),
-                        ),
-                      );
-                      return;
-                    }
-
-                    final quantity = double.tryParse(quantityCtrl.text) ?? 0;
-                    selectedDietItem!.weeklyTarget = (selectedDietItem?.weeklyTarget ?? 0) + quantity;
-
-                    final newItem = MealPlanItem(
-                      id: item?.id ?? const Uuid().v4(),
-                      dietItemId: selectedDietItem!.id,
-                      quantity: quantity,
-                    );
-
-                    setState(() {
-                      final items = _mealPlan.plan[_selectedDay]![mealType]!;
-                      if (item != null) {
-                        final index = items.indexWhere((i) => i.id == item.id);
-                        if (index != -1) {
-                          items[index] = newItem;
-                        }
-                      } else {
-                        items.add(newItem);
-                      }
-                    });
-
-                    widget.onUpdateMealPlan(_mealPlan);
-                    widget.onUpdateDietItems(widget.dietItems);
                     Navigator.pop(ctx);
+                    _showCreateNewDietItemDialog(mealType, dietItems);
                   },
-                  child: const Text('Salva'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Crea Nuovo Alimento'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 40),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: quantityCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Quantità',
+                    suffix: Text(
+                        selectedDietItem?.unit.name ?? ''),
+                  ),
                 ),
               ],
-            );
-          },
-        );
-      },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annulla'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (selectedDietItem == null ||
+                    quantityCtrl.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                          'Seleziona un alimento e inserisci la quantità'),
+                    ),
+                  );
+                  return;
+                }
+
+                final quantity =
+                    double.tryParse(quantityCtrl.text) ?? 0;
+
+                // Update dietItem weeklyTarget through provider
+                final updatedDietItem = selectedDietItem!.copyWith(
+                  weeklyTarget:
+                      selectedDietItem!.weeklyTarget + quantity,
+                );
+                ref
+                    .read(dietItemsProvider.notifier)
+                    .edit(updatedDietItem);
+
+                final newItem = MealPlanItem(
+                  id: item?.id ?? const Uuid().v4(),
+                  dietItemId: selectedDietItem!.id,
+                  quantity: quantity,
+                );
+
+                if (item != null) {
+                  ref.read(mealPlanProvider.notifier).removeItem(
+                        _selectedDay,
+                        mealType,
+                        item.id,
+                      );
+                }
+                ref.read(mealPlanProvider.notifier).addItem(
+                      _selectedDay,
+                      mealType,
+                      newItem,
+                    );
+
+                Navigator.pop(ctx);
+              },
+              child: const Text('Salva'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  void _showCreateNewDietItemDialog(MealType mealType) {
+  void _showEditItemDialog(
+    MealType mealType,
+    MealPlanItem item,
+    List<DietItem> dietItems,
+  ) {
+    _showItemDialog(mealType, item, dietItems);
+  }
+
+  void _showCreateNewDietItemDialog(
+    MealType mealType,
+    List<DietItem> dietItems,
+  ) {
     final nameCtrl = TextEditingController();
     final descriptionCtrl = TextEditingController();
     Unit selectedUnit = Unit.Grammi;
     final unitCtrl = TextEditingController(text: selectedUnit.name);
-    ShoppingCategory selectedCategory = ShoppingCategory(id: '', name: "Nessuna Categoria", priority: 999);
-    final categoryCtrl = TextEditingController(text: selectedCategory.name);
+    final categories =
+        ref.read(categoriesProvider).valueOrNull ?? [];
+    ShoppingCategory selectedCategory =
+        ShoppingCategory(id: '', name: 'Nessuna Categoria', priority: 999);
+    final categoryCtrl =
+        TextEditingController(text: selectedCategory.name);
 
     showDialog(
       context: context,
@@ -390,26 +422,26 @@ class _MealPlanPageState extends State<MealPlanPage> {
                   alignLabelWithHint: true,
                 ),
               ),
-              const SizedBox(height: 16,),
-            DropdownMenu<ShoppingCategory>(
-              expandedInsets: EdgeInsets.zero,
-              initialSelection: selectedCategory,
-              controller: categoryCtrl,
-              requestFocusOnTap: false,
-              label: const Text('Categoria'),
-              onSelected: (ShoppingCategory? category) {
-                if (category != null) {
-                  selectedCategory = category;
-                  categoryCtrl.text = category.name;
-                }
-              },
-              dropdownMenuEntries: widget.categories
-                .map((category) => DropdownMenuEntry<ShoppingCategory>(
-                      value: category,
-                      label: category.name,
-                    ))
-                .toList(),
-            ),
+              const SizedBox(height: 16),
+              DropdownMenu<ShoppingCategory>(
+                expandedInsets: EdgeInsets.zero,
+                initialSelection: selectedCategory,
+                controller: categoryCtrl,
+                requestFocusOnTap: false,
+                label: const Text('Categoria'),
+                onSelected: (ShoppingCategory? category) {
+                  if (category != null) {
+                    selectedCategory = category;
+                    categoryCtrl.text = category.name;
+                  }
+                },
+                dropdownMenuEntries: categories
+                    .map((cat) => DropdownMenuEntry<ShoppingCategory>(
+                          value: cat,
+                          label: cat.name,
+                        ))
+                    .toList(),
+              ),
             ],
           ),
         ),
@@ -422,7 +454,9 @@ class _MealPlanPageState extends State<MealPlanPage> {
             onPressed: () {
               if (nameCtrl.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Inserisci il nome dell\'alimento')),
+                  const SnackBar(
+                      content:
+                          Text("Inserisci il nome dell'alimento")),
                 );
                 return;
               }
@@ -434,16 +468,22 @@ class _MealPlanPageState extends State<MealPlanPage> {
                 weeklyTarget: 0,
                 currentStock: 0,
                 unit: selectedUnit,
-                categoryId: selectedCategory.id
+                categoryId: selectedCategory.id,
               );
 
-              final updatedDietItems = [...widget.dietItems, newDietItem];
-              widget.onUpdateDietItems(updatedDietItems);
+              ref.read(dietItemsProvider.notifier).add(newDietItem);
 
               Navigator.pop(ctx);
 
               Future.delayed(const Duration(milliseconds: 100), () {
-                _showItemDialog(mealType, null, selectedDI: newDietItem);
+                final updatedItems =
+                    ref.read(dietItemsProvider).valueOrNull ?? [];
+                _showItemDialog(
+                  mealType,
+                  null,
+                  updatedItems,
+                  preselected: newDietItem,
+                );
               });
             },
             child: const Text('Crea e Seleziona'),
@@ -453,12 +493,17 @@ class _MealPlanPageState extends State<MealPlanPage> {
     );
   }
 
-  void _deleteItem(MealType mealType, MealPlanItem item) {
+  void _deleteItem(
+    MealType mealType,
+    MealPlanItem item,
+    List<DietItem> dietItems,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Conferma'),
-        content: const Text('Vuoi rimuovere questo alimento dal pasto?'),
+        content: const Text(
+            'Vuoi rimuovere questo alimento dal pasto?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -466,17 +511,32 @@ class _MealPlanPageState extends State<MealPlanPage> {
           ),
           FilledButton(
             onPressed: () {
-              setState(() {
-                _mealPlan.plan[_selectedDay]![mealType]!.removeWhere((i) => i.id == item.id);
-              });
-              final int idx = widget.dietItems.indexWhere((di) => di.id == item.dietItemId);
-              if (idx > -1) {
-                double qty = widget.dietItems[idx].weeklyTarget - item.quantity;
-                if (qty < 0) qty = 0;
-                widget.dietItems[idx].weeklyTarget = qty;
+              // Decrement weeklyTarget through provider
+              final di = dietItems.firstWhere(
+                (d) => d.id == item.dietItemId,
+                orElse: () => DietItem(
+                  id: '',
+                  name: '',
+                  description: '',
+                  weeklyTarget: 0,
+                  currentStock: 0,
+                  unit: Unit.Grammi,
+                  categoryId: '',
+                ),
+              );
+              if (di.id.isNotEmpty) {
+                final newTarget = (di.weeklyTarget - item.quantity)
+                    .clamp(0.0, double.infinity);
+                ref
+                    .read(dietItemsProvider.notifier)
+                    .edit(di.copyWith(weeklyTarget: newTarget));
               }
-              widget.onUpdateMealPlan(_mealPlan);
-              widget.onUpdateDietItems(widget.dietItems);
+
+              ref.read(mealPlanProvider.notifier).removeItem(
+                    _selectedDay,
+                    mealType,
+                    item.id,
+                  );
               Navigator.pop(ctx);
             },
             child: const Text('Elimina'),
@@ -486,16 +546,19 @@ class _MealPlanPageState extends State<MealPlanPage> {
     );
   }
 
-  void _consumeMeal(MealType mealType) {
-    final items = _mealPlan.plan[_selectedDay]![mealType]!;
-
+  void _consumeMeal(
+    MealType mealType,
+    List<MealPlanItem> items,
+    List<DietItem> dietItems,
+  ) {
     if (items.isEmpty) return;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Conferma consumo pasto'),
-        content: const Text('Sei sicuro di aver consumato questo pasto?'),
+        content:
+            const Text('Sei sicuro di aver consumato questo pasto?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -503,19 +566,21 @@ class _MealPlanPageState extends State<MealPlanPage> {
           ),
           FilledButton(
             onPressed: () {
-              final updatedDietItems = widget.dietItems.map((di) {
+              for (final di in dietItems) {
                 final mealItem = items.firstWhere(
                   (i) => i.dietItemId == di.id,
-                  orElse: () => MealPlanItem(id: '', dietItemId: '', quantity: 0),
+                  orElse: () => MealPlanItem(
+                      id: '', dietItemId: '', quantity: 0),
                 );
                 if (mealItem.id.isNotEmpty) {
                   final newStock = di.currentStock - mealItem.quantity;
-                  return di.copyWith(currentStock: newStock < 0 ? 0 : newStock);
+                  ref.read(dietItemsProvider.notifier).edit(
+                        di.copyWith(
+                            currentStock:
+                                newStock < 0 ? 0 : newStock),
+                      );
                 }
-                return di;
-              }).toList();
-
-              widget.onUpdateDietItems(updatedDietItems);
+              }
               Navigator.pop(ctx);
             },
             child: const Text('Conferma'),

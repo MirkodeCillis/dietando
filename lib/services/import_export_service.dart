@@ -1,19 +1,21 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:dietando/services/data_service.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:dietando/models/models.dart';
+import 'package:dietando/providers/categories_provider.dart';
+import 'package:dietando/providers/diet_items_provider.dart';
+import 'package:dietando/providers/extra_items_provider.dart';
+import 'package:dietando/providers/meal_plan_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
-// Importazione Condizionale: la funzione downloadFileWeb sarà accessibile 
-// come downloadFileWeb() in tutte le piattaforme.
-import 'download_service_stub.dart' 
+// Conditional import: downloadFileWeb() is resolved per platform target.
+import 'download_service_stub.dart'
     if (dart.library.js_interop) 'download_service_web.dart';
-
 
 class ExportData {
   final List<DietItem> dietItems;
@@ -58,39 +60,22 @@ class ExportData {
 class ImportExportService {
   // ========== EXPORT ==========
 
-  static Future<String> _exportToJson() async {
-    final m = await DataService.loadMealPlan();
-    final d = await DataService.loadDiet();
-    final e = await DataService.loadExtras();
-    final c = await DataService.loadCategories();
+  static String _toJson(ExportData data) =>
+      jsonEncode(data.toJson());
 
-    final exportData = ExportData(
-      dietItems: d,
-      extraItems: e,
-      mealPlan: m,
-      categories: c,
-      exportDate: DateTime.now().toIso8601String(),
-    );
-
-    final jsonString = jsonEncode(exportData.toJson());
-    return jsonString;
-  }
-
-  static Future<bool> exportAndShare() async {
+  static Future<bool> _exportAndShare(String jsonString) async {
     try {
-      final jsonString = await _exportToJson();
-
-      // Nota: getTemporaryDirectory è supportato solo su piattaforme native (non web)
-      final directory = await getTemporaryDirectory(); 
-      final fileName = 'dietando_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final directory = await getTemporaryDirectory();
+      final fileName =
+          'dietando_backup_${DateTime.now().millisecondsSinceEpoch}.json';
       final file = File('${directory.path}/$fileName');
-
       await file.writeAsString(jsonString);
 
       final result = await Share.shareXFiles(
         [XFile(file.path)],
         subject: 'Backup Dietando',
-        text: 'Backup dei dati di Dietando del ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+        text:
+            'Backup dei dati di Dietando del ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
       );
 
       return result.status == ShareResultStatus.success;
@@ -100,16 +85,14 @@ class ImportExportService {
     }
   }
 
-  static Future<bool> exportToFile() async {
+  static Future<bool> _exportToFile(String jsonString) async {
     try {
-      final jsonString = await _exportToJson();
-      final fileName = 'dietando_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-
+      final fileName =
+          'dietando_backup_${DateTime.now().millisecondsSinceEpoch}.json';
       final bytes = Uint8List.fromList(utf8.encode(jsonString));
 
       if (kIsWeb) {
-        // Chiama la funzione condizionale, risolta in base al target
-        downloadFileWeb(bytes, fileName); 
+        downloadFileWeb(bytes, fileName);
         return true;
       }
 
@@ -126,28 +109,40 @@ class ImportExportService {
     }
   }
 
-  // Funzione _downloadFileWeb rimossa da qui!
+  /// Exports all app data. Reads current state from Riverpod providers via [ref].
+  static Future<bool> export(WidgetRef ref) async {
+    final dietItems = ref.read(dietItemsProvider).valueOrNull ?? [];
+    final extraItems = ref.read(extraItemsProvider).valueOrNull ?? [];
+    final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+    final mealPlan =
+        ref.read(mealPlanProvider).valueOrNull ?? MealPlan();
 
-  static Future<bool> export() async {
-    if (kIsWeb) {
-      return await exportToFile();
-    }
+    final data = ExportData(
+      dietItems: dietItems,
+      extraItems: extraItems,
+      categories: categories,
+      mealPlan: mealPlan,
+      exportDate: DateTime.now().toIso8601String(),
+    );
+
+    final jsonString = _toJson(data);
+
+    if (kIsWeb) return _exportToFile(jsonString);
     try {
       if (Platform.isAndroid || Platform.isIOS) {
-        return await exportAndShare();
+        return _exportAndShare(jsonString);
       } else {
-        return await exportToFile();
+        return _exportToFile(jsonString);
       }
     } catch (e) {
       debugPrint('Platform check failed, using file picker: $e');
-      // Qui non è più necessario il check, perché exportToFile gestisce il caso web
-      return await exportToFile();
+      return _exportToFile(jsonString);
     }
   }
 
   // ========== IMPORT ==========
 
-  static Future<ExportData?> _importFromJson(String jsonString) async {
+  static Future<ExportData?> _parseJson(String jsonString) async {
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       return ExportData.fromJson(json);
@@ -157,7 +152,8 @@ class ImportExportService {
     }
   }
 
-  static Future<bool> importFromFile() async {
+  /// Imports data from a file and writes it through Riverpod notifiers via [ref].
+  static Future<bool> importFromFile(WidgetRef ref) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -165,9 +161,7 @@ class ImportExportService {
         allowMultiple: false,
       );
 
-      if (result == null || result.files.isEmpty) {
-        return false;
-      }
+      if (result == null || result.files.isEmpty) return false;
 
       String jsonString;
 
@@ -184,20 +178,25 @@ class ImportExportService {
           debugPrint('Errore: path null');
           return false;
         }
-        final file = File(path);
-        jsonString = await file.readAsString();
+        jsonString = await File(path).readAsString();
       }
 
-      final exportedData = await _importFromJson(jsonString);
+      final exported = await _parseJson(jsonString);
+      if (exported == null) return false;
 
-      if (exportedData == null) {
-        return false;
-      }
+      await ref
+          .read(mealPlanProvider.notifier)
+          .replaceAll(exported.mealPlan);
+      await ref
+          .read(categoriesProvider.notifier)
+          .replaceAll(exported.categories);
+      await ref
+          .read(dietItemsProvider.notifier)
+          .replaceAll(exported.dietItems);
+      await ref
+          .read(extraItemsProvider.notifier)
+          .replaceAll(exported.extraItems);
 
-      await DataService.saveMealPlan(exportedData.mealPlan);
-      await DataService.saveCategories(exportedData.categories);
-      await DataService.saveDiet(exportedData.dietItems);
-      await DataService.saveExtras(exportedData.extraItems);
       return true;
     } catch (e) {
       debugPrint('Errore import: $e');

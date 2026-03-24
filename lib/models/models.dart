@@ -24,6 +24,7 @@ class DietItem {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
+    'description': description,
     'weeklyTarget': weeklyTarget,
     'currentStock': currentStock,
     'unit': unit.index,
@@ -231,6 +232,20 @@ class ExtraItem {
         ? (json['quantity'] as num).toDouble()
         : null,
   );
+
+  ExtraItem copyWith({
+    String? id,
+    String? name,
+    bool? isBought,
+    double? quantity,
+  }) {
+    return ExtraItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isBought: isBought ?? this.isBought,
+      quantity: quantity ?? this.quantity,
+    );
+  }
 }
 
 class ShoppingCategory {
@@ -247,7 +262,6 @@ class ShoppingCategory {
   ShoppingCategory copyWith({
     String? id,
     String? name,
-    IconData? icon,
     int? priority,
   }) {
     return ShoppingCategory(
@@ -291,4 +305,15 @@ class SettingsData {
 
   
   static SettingsData defaultSettings = SettingsData(themeMode: 'system', language: 'it');
+
+  ThemeMode get themeModeEnum {
+    switch (themeMode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
 }

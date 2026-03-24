@@ -1,54 +1,74 @@
-import 'package:dietando/models/models.dart';
-import 'package:dietando/services/data_service.dart';
-import 'package:flutter/material.dart';
 import 'package:dietando/home.dart';
+import 'package:dietando/providers/settings_provider.dart';
+import 'package:dietando/providers/shared_preferences_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(settingsProvider);
 
-class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  Future<void> _loadSettings() async {
-    final settings = await DataService.loadSettings();
-    setState(() {
-      _themeMode = _parseThemeMode(settings.themeMode);
-      _isLoading = false;
-    });
-  }
-
-  void _saveSettings(SettingsData newSettings) {
-    DataService.saveSettings(newSettings);
-    setState(() {
-      _themeMode = _parseThemeMode(newSettings.themeMode);
-    });
-  }
-
-  ThemeMode _parseThemeMode(String? themeModeString) {
-    switch (themeModeString) {
-      case 'dark':
-        return ThemeMode.dark;
-      case 'light':
-        return ThemeMode.light;
-      case 'system':
-      default:
-        return ThemeMode.system;
-    }
+    return settingsAsync.when(
+      loading: () => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.restaurant_menu,
+                  size: 64,
+                  color: const Color(0xFF7692FF),
+                ),
+                const SizedBox(height: 24),
+                const CircularProgressIndicator(),
+              ],
+            ),
+          ),
+        ),
+      ),
+      error: (err, stack) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text('Errore nel caricamento delle impostazioni'),
+              ],
+            ),
+          ),
+        ),
+      ),
+      data: (settings) => MaterialApp(
+        title: 'Dietando',
+        debugShowCheckedModeBanner: false,
+        theme: _buildTheme(Brightness.light),
+        darkTheme: _buildTheme(Brightness.dark),
+        themeMode: settings.themeModeEnum,
+        home: const HomeScreen(),
+      ),
+    );
   }
 
   ThemeData _buildTheme(Brightness brightness) {
@@ -56,9 +76,9 @@ class _MyAppState extends State<MyApp> {
       seedColor: const Color(0xFF7692FF),
       brightness: brightness,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-      onError: Color.fromARGB(255, 239, 43, 43)
+      onError: const Color.fromARGB(255, 239, 43, 43),
     );
-    
+
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
@@ -97,42 +117,6 @@ class _MyAppState extends State<MyApp> {
       ),
       expansionTileTheme: const ExpansionTileThemeData(
         tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.restaurant_menu,
-                  size: 64,
-                  color: const Color(0xFF7692FF),
-                ),
-                const SizedBox(height: 24),
-                const CircularProgressIndicator(),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return MaterialApp(
-      title: 'Dietando',
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
-      themeMode: _themeMode,
-      home: HomeScreen(
-        saveSettings: _saveSettings,
       ),
     );
   }
