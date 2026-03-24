@@ -1,6 +1,6 @@
-import 'package:dietando/home.dart';
 import 'package:dietando/providers/settings_provider.dart';
 import 'package:dietando/providers/shared_preferences_provider.dart';
+import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,13 +60,13 @@ class MyApp extends ConsumerWidget {
           ),
         ),
       ),
-      data: (settings) => MaterialApp(
+      data: (settings) => MaterialApp.router(
         title: 'Dietando',
         debugShowCheckedModeBanner: false,
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
         themeMode: settings.themeModeEnum,
-        home: const HomeScreen(),
+        routerConfig: appRouter,
       ),
     );
   }

@@ -1,8 +1,11 @@
 import 'package:dietando/components/filter.dart';
+import 'package:dietando/components/navbar.dart';
+import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/diet_items_provider.dart';
 import 'package:dietando/providers/meal_plan_provider.dart';
+import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -23,28 +26,31 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
     final itemsAsync = ref.watch(dietItemsProvider);
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
 
-    return itemsAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        body: Center(child: Text('Errore: $e')),
-      ),
-      data: (items) {
-        // Keep filtered list in sync when source changes
-        if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _filteredItems = items);
-          });
-        }
+    final items = itemsAsync.valueOrNull;
 
-        return Scaffold(
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showItemDialog(context, null, items, categories),
-            label: const Text('Aggiungi'),
-            icon: const Icon(Icons.add),
-          ),
-          body: items.isEmpty
+    return Scaffold(
+      appBar: AppTopBar(title: 'Inventario Dieta'),
+      bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.inventory),
+      floatingActionButton: items != null
+          ? FloatingActionButton.extended(
+              onPressed: () =>
+                  _showItemDialog(context, null, items, categories),
+              label: const Text('Aggiungi'),
+              icon: const Icon(Icons.add),
+            )
+          : null,
+      body: itemsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Errore: $e')),
+        data: (items) {
+          // Keep filtered list in sync when source changes
+          if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _filteredItems = items);
+            });
+          }
+
+          return items.isEmpty
               ? const Center(child: Text('Nessun alimento nel piano.'))
               : Column(
                   children: [
@@ -134,9 +140,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                       ),
                     ),
                   ],
-                ),
-        );
-      },
+                );
+        },
+      ),
     );
   }
 

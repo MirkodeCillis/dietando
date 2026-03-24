@@ -1,6 +1,9 @@
+import 'package:dietando/components/navbar.dart';
+import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/settings_provider.dart';
+import 'package:dietando/router.dart';
 import 'package:dietando/services/import_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +26,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final currentThemeMode = settings.themeModeEnum;
 
     return Scaffold(
+      appBar: AppTopBar(title: 'Impostazioni'),
+      bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.mealPlan),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

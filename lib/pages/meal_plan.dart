@@ -1,7 +1,10 @@
+import 'package:dietando/components/navbar.dart';
+import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/diet_items_provider.dart';
 import 'package:dietando/providers/meal_plan_provider.dart';
+import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -26,15 +29,13 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
   Widget build(BuildContext context) {
     final mealPlanAsync = ref.watch(mealPlanProvider);
 
-    return mealPlanAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        body: Center(child: Text('Errore: $e')),
-      ),
-      data: (mealPlan) => Scaffold(
-        body: Column(
+    return Scaffold(
+      appBar: AppTopBar(title: 'Piano Alimentare'),
+      bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.mealPlan),
+      body: mealPlanAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Errore: $e')),
+        data: (mealPlan) => Column(
           children: [
             _buildDaySelector(),
             const Divider(height: 1),

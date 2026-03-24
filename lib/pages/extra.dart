@@ -1,6 +1,9 @@
 import 'package:dietando/components/filter.dart';
+import 'package:dietando/components/navbar.dart';
+import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/extra_items_provider.dart';
+import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -20,27 +23,29 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(extraItemsProvider);
 
-    return itemsAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        body: Center(child: Text('Errore: $e')),
-      ),
-      data: (items) {
-        if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _filteredItems = items);
-          });
-        }
+    final items = itemsAsync.valueOrNull;
 
-        return Scaffold(
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showItemDialog(context, null, items),
-            label: const Text('Aggiungi'),
-            icon: const Icon(Icons.add),
-          ),
-          body: items.isEmpty
+    return Scaffold(
+      appBar: AppTopBar(title: 'Spese Extra'),
+      bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.extra),
+      floatingActionButton: items != null
+          ? FloatingActionButton.extended(
+              onPressed: () => _showItemDialog(context, null, items),
+              label: const Text('Aggiungi'),
+              icon: const Icon(Icons.add),
+            )
+          : null,
+      body: itemsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Errore: $e')),
+        data: (items) {
+          if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _filteredItems = items);
+            });
+          }
+
+          return items.isEmpty
               ? const Center(child: Text('Nessuna spesa extra da fare.'))
               : Column(
                   children: [
@@ -75,8 +80,7 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
                                       if (v != null) {
                                         ref
                                             .read(extraItemsProvider.notifier)
-                                            .edit(
-                                                item.copyWith(isBought: v));
+                                            .edit(item.copyWith(isBought: v));
                                       }
                                     },
                                   ),
@@ -109,9 +113,9 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
                       ),
                     ),
                   ],
-                ),
-        );
-      },
+                );
+        },
+      ),
     );
   }
 

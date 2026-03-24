@@ -1,10 +1,13 @@
 import 'package:dietando/components/filter.dart';
 import 'package:dietando/components/shopping_list_diet_item.dart';
 import 'package:dietando/components/shopping_list_extra_item.dart';
+import 'package:dietando/components/navbar.dart';
+import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/diet_items_provider.dart';
 import 'package:dietando/providers/extra_items_provider.dart';
+import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -64,33 +67,50 @@ class _ShoppingPageState extends ConsumerState<ShoppingPage> {
     final sortedDiet = _sortByCategory(missingDiet, categories);
     final pendingExtras = _filteredExtraItems.where((i) => !i.isBought).toList();
 
+    final appBar = AppBar(
+      title: const Text(
+        'Lista della Spesa',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      centerTitle: true,
+      elevation: 2,
+    );
+    const navBar = AppNavBar(currentRoute: AppRoutes.shopping);
+
     if (missingDiet.isEmpty && pendingExtras.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 100,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Tutto fatto!',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.5),
+      return Scaffold(
+        appBar: AppTopBar(title: 'Lista della Spesa'),
+        bottomNavigationBar: navBar,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.check_circle_outline,
+                size: 100,
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Tutto fatto!',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(8),
+    return Scaffold(
+      appBar: appBar,
+      bottomNavigationBar: navBar,
+      body: ListView(
+        padding: const EdgeInsets.all(8),
       children: [
         Card(
           child: ExpansionTile(
@@ -201,6 +221,7 @@ class _ShoppingPageState extends ConsumerState<ShoppingPage> {
           ),
         ),
       ],
+      ),
     );
   }
 }
