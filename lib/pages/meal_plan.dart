@@ -18,11 +18,22 @@ class MealPlanPage extends ConsumerStatefulWidget {
 
 class _MealPlanPageState extends ConsumerState<MealPlanPage> {
   late DayOfWeek _selectedDay;
+  final List<GlobalKey> _dayKeys =
+      List.generate(DayOfWeek.values.length, (_) => GlobalKey());
 
   @override
   void initState() {
     super.initState();
     _selectedDay = DayOfWeek.values[DateTime.now().weekday - 1];
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelected());
+  }
+
+  void _scrollToSelected() {
+    final ctx = _dayKeys[_selectedDay.index].currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(ctx,
+          alignment: 0.5, duration: const Duration(milliseconds: 300));
+    }
   }
 
   @override
@@ -55,7 +66,6 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
   }
 
   Widget _buildDaySelector() {
-    final int currentDay = DateTime.now().weekday - 1;
     return SizedBox(
       height: 60,
       child: ListView.builder(
@@ -63,8 +73,7 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         itemCount: DayOfWeek.values.length,
         itemBuilder: (context, index) {
-          final day = DayOfWeek
-              .values[(index + currentDay) % DayOfWeek.values.length];
+          final day = DayOfWeek.values[index];
           final isSelected = day == _selectedDay;
 
           return Padding(
@@ -74,6 +83,8 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
               selected: isSelected,
               onSelected: (selected) {
                 setState(() => _selectedDay = day);
+                WidgetsBinding.instance
+                    .addPostFrameCallback((_) => _scrollToSelected());
               },
             ),
           );
@@ -92,6 +103,7 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
+            contentPadding: EdgeInsets.only(left: 8, right: 8, top: 4),
             leading: CircleAvatar(
               backgroundColor:
                   Theme.of(context).colorScheme.primaryContainer,
@@ -227,11 +239,6 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Seleziona alimento:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     border: Border.all(
@@ -319,15 +326,16 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
 
                 final quantity =
                     double.tryParse(quantityCtrl.text) ?? 0;
+                final prevQuantity = item?.quantity ?? 0;
 
                 // Update dietItem weeklyTarget through provider
                 final updatedDietItem = selectedDietItem!.copyWith(
                   weeklyTarget:
-                      selectedDietItem!.weeklyTarget + quantity,
+                      selectedDietItem!.weeklyTarget + quantity - prevQuantity,
                 );
                 ref
-                    .read(dietItemsProvider.notifier)
-                    .edit(updatedDietItem);
+                  .read(dietItemsProvider.notifier)
+                  .edit(updatedDietItem);
 
                 final newItem = MealPlanItem(
                   id: item?.id ?? const Uuid().v4(),
