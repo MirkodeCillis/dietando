@@ -183,9 +183,24 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
       ),
     );
 
+    final progress = dietItem.weeklyTarget > 0
+      ? ((dietItem.currentStock) / dietItem.weeklyTarget)
+          .clamp(0.0, 1.0)
+      : 1.0;
+
     return ListTile(
       dense: true,
-      leading: const Icon(Icons.restaurant, size: 20),
+      leading: Icon(
+        Icons.restaurant,
+        size: 20,
+        color: progress < 0.3 || dietItem.currentStock < item.quantity
+          ? Theme.of(context)
+              .colorScheme
+              .onError
+          : progress < 0.7
+          ? const Color.fromARGB(
+              255, 206, 96, 59)
+          : null),
       title: Text(dietItem.name),
       subtitle: Text(
           '${item.quantity.toStringAsFixed(0)} ${dietItem.unit.name}'),
