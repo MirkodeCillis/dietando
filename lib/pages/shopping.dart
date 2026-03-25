@@ -46,9 +46,9 @@ class _ShoppingPageState extends ConsumerState<ShoppingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dietItems = ref.watch(dietItemsProvider).valueOrNull ?? [];
-    final extraItems = ref.watch(extraItemsProvider).valueOrNull ?? [];
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final dietItems = ref.watch(dietItemsProvider).value ?? [];
+    final extraItems = ref.watch(extraItemsProvider).value ?? [];
+    final categories = ref.watch(categoriesProvider).value ?? [];
 
     // Sync filtered lists when source changes
     final filteredDietItems = (_dietFilterController.isFiltering ? _filteredDietItems : dietItems)

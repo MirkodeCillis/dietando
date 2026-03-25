@@ -21,8 +21,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final categoriesAsync = ref.watch(categoriesProvider);
     final settingsAsync = ref.watch(settingsProvider);
 
-    final categories = categoriesAsync.valueOrNull ?? [];
-    final settings = settingsAsync.valueOrNull ?? SettingsData.defaultSettings;
+    final categories = categoriesAsync.value ?? [];
+    final settings = settingsAsync.value ?? SettingsData.defaultSettings;
     final currentThemeMode = settings.themeModeEnum;
 
     return Scaffold(

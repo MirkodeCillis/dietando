@@ -24,9 +24,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
   @override
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(dietItemsProvider);
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final categories = ref.watch(categoriesProvider).value ?? [];
 
-    final items = itemsAsync.valueOrNull;
+    final items = itemsAsync.value;
 
     return Scaffold(
       appBar: AppTopBar(title: 'Inventario Dieta'),

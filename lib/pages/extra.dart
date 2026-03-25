@@ -23,7 +23,7 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(extraItemsProvider);
 
-    final items = itemsAsync.valueOrNull;
+    final items = itemsAsync.value;
 
     return Scaffold(
       appBar: AppTopBar(title: 'Spese Extra'),

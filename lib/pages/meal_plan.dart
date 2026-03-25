@@ -96,7 +96,7 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
 
   Widget _buildMealSection(MealType mealType, MealPlan mealPlan) {
     final items = mealPlan.plan[_selectedDay]?[mealType] ?? [];
-    final dietItems = ref.watch(dietItemsProvider).valueOrNull ?? [];
+    final dietItems = ref.watch(dietItemsProvider).value ?? [];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -413,7 +413,7 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
     Unit selectedUnit = Unit.Grammi;
     final unitCtrl = TextEditingController(text: selectedUnit.name);
     final categories =
-        ref.read(categoriesProvider).valueOrNull ?? [];
+        ref.read(categoriesProvider).value ?? [];
     ShoppingCategory selectedCategory =
         ShoppingCategory(id: '', name: 'Nessuna Categoria', priority: 999);
     final categoryCtrl =
@@ -516,7 +516,7 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
 
               Future.delayed(const Duration(milliseconds: 100), () {
                 final updatedItems =
-                    ref.read(dietItemsProvider).valueOrNull ?? [];
+                    ref.read(dietItemsProvider).value ?? [];
                 _showItemDialog(
                   mealType,
                   null,

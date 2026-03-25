@@ -111,11 +111,11 @@ class ImportExportService {
 
   /// Exports all app data. Reads current state from Riverpod providers via [ref].
   static Future<bool> export(WidgetRef ref) async {
-    final dietItems = ref.read(dietItemsProvider).valueOrNull ?? [];
-    final extraItems = ref.read(extraItemsProvider).valueOrNull ?? [];
-    final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+    final dietItems = ref.read(dietItemsProvider).value ?? [];
+    final extraItems = ref.read(extraItemsProvider).value ?? [];
+    final categories = ref.read(categoriesProvider).value ?? [];
     final mealPlan =
-        ref.read(mealPlanProvider).valueOrNull ?? MealPlan();
+        ref.read(mealPlanProvider).value ?? MealPlan();
 
     final data = ExportData(
       dietItems: dietItems,
