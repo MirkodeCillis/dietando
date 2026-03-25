@@ -69,7 +69,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                           final progress = item.weeklyTarget > 0
                               ? (item.currentStock / item.weeklyTarget)
                                   .clamp(0.0, 1.0)
-                              : 0.0;
+                              : 1.0;
 
                           return Card(
                             margin: const EdgeInsets.symmetric(
@@ -107,10 +107,10 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                                       child: LinearProgressIndicator(
                                         value: progress,
                                         minHeight: 8,
-                                        color: progress >= 1
+                                        color: progress >= 0.7
                                             ? const Color.fromARGB(
                                                 255, 86, 170, 89)
-                                            : (progress > 0.5
+                                            : (progress > 0.3
                                                 ? const Color.fromARGB(
                                                     255, 206, 96, 59)
                                                 : Theme.of(context)
