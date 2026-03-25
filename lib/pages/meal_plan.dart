@@ -1,3 +1,4 @@
+import 'package:dietando/components/filter.dart';
 import 'package:dietando/components/navbar.dart';
 import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
@@ -214,6 +215,8 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
     List<DietItem> dietItems, {
     DietItem? preselected,
   }) {
+    final FilterController filterController = FilterController();
+    List<DietItem> filteredItems = [...dietItems];
     DietItem? selectedDietItem = preselected;
 
     if (item != null) {
@@ -251,33 +254,45 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemCount: dietItems.length,
-                        itemBuilder: (context, index) {
-                          final di = dietItems[index];
-                          final isSelected =
-                              selectedDietItem?.id == di.id;
-                          return Container(
-                            color: isSelected
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer
-                                    .withValues(alpha: 0.3)
-                                : null,
-                            child: ListTile(
-                              dense: true,
-                              title: Text(di.name),
-                              subtitle: Text(di.unit.name),
-                              onTap: () => setDialogState(
-                                  () => selectedDietItem = di),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Filter<DietItem>(
+                          controller: filterController,
+                          list: dietItems,
+                          filterBy: (item) => item.name,
+                          updateList: (resultItems) {
+                            setDialogState(() => filteredItems = resultItems);
+                          },
+                        ),
+                        SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemCount: filteredItems.length,
+                            itemBuilder: (context, index) {
+                              final di = filteredItems[index];
+                              final isSelected = selectedDietItem?.id == di.id;
+                              return Container(
+                                color: isSelected
+                                    ? Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withValues(alpha: 0.3)
+                                    : null,
+                                child: ListTile(
+                                  dense: true,
+                                  title: Text(di.name),
+                                  subtitle: Text(di.unit.name),
+                                  onTap: () => setDialogState(
+                                    () => selectedDietItem = di,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ])
                   ),
                 ),
                 const SizedBox(height: 16),
