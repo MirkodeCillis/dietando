@@ -196,10 +196,9 @@ class _MealPlanPageState extends ConsumerState<MealPlanPage> {
         color: progress < 0.3 || dietItem.currentStock < item.quantity
           ? Theme.of(context)
               .colorScheme
-              .onError
+              .error
           : progress < 0.7
-          ? const Color.fromARGB(
-              255, 206, 96, 59)
+          ? const Color.fromARGB(255, 227, 184, 170)
           : null),
       title: Text(dietItem.name),
       subtitle: Text(

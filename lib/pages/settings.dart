@@ -1,9 +1,7 @@
-import 'package:dietando/components/navbar.dart';
 import 'package:dietando/components/topbar.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/settings_provider.dart';
-import 'package:dietando/router.dart';
 import 'package:dietando/services/import_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +14,8 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  bool _isCategoryReorderEnabled = false;
+
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoriesProvider);
@@ -30,7 +30,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildSectionTitle('Categorie Lista della Spesa'),
+          Row(
+            children: [
+              Expanded(child: _buildSectionTitle('Categorie Lista della Spesa'),),
+              IconButton(
+                icon: _isCategoryReorderEnabled ? const Icon(Icons.check) : const Icon(Icons.edit),
+                onPressed: () => setState(() => _isCategoryReorderEnabled = !_isCategoryReorderEnabled)
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           Text(
             'Ordina le categorie per priorità (trascina per riordinare)',
@@ -41,10 +49,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           const SizedBox(height: 16),
           _buildCategoriesList(categories),
           const SizedBox(height: 8),
-          FilledButton.tonalIcon(
-            onPressed: () => _showCategoryDialog(categories, null, null),
-            icon: const Icon(Icons.add),
-            label: const Text('Aggiungi Categoria'),
+          Opacity(
+            opacity: _isCategoryReorderEnabled ? 1.0 : 0.8,
+            child: IgnorePointer(
+              ignoring: !_isCategoryReorderEnabled,
+              child: 
+                FilledButton.tonalIcon(
+                  onPressed: () => _showCategoryDialog(categories, null, null),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Aggiungi Categoria'),
+                ),
+            )
           ),
 
           const SizedBox(height: 32),
@@ -78,61 +93,71 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
         fontWeight: FontWeight.bold,
-      ),
+      )
     );
   }
 
   Widget _buildCategoriesList(List<ShoppingCategory> categories) {
-    return Card(
-      child: ReorderableListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: categories.length,
-        onReorder: (oldIndex, newIndex) {
-          if (oldIndex < newIndex) newIndex -= 1;
-          final reordered = List<ShoppingCategory>.from(categories);
-          final item = reordered.removeAt(oldIndex);
-          reordered.insert(newIndex, item);
-          final updated = [
-            for (int i = 0; i < reordered.length; i++)
-              reordered[i].copyWith(priority: i),
-          ];
-          ref.read(categoriesProvider.notifier).reorder(updated);
-        },
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return ReorderableDragStartListener(
-            key: ValueKey(category.id),
-            index: index,
-            child: Card(
-              key: ValueKey(category.id),
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              elevation: 0,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: ListTile(
-                title: Text(category.name),
-                subtitle: Text('Priorità: ${category.priority + 1}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () =>
-                          _showCategoryDialog(categories, category, index),
+    return Opacity(
+      opacity: _isCategoryReorderEnabled ? 1.0 : 0.8,
+      child: IgnorePointer(
+        ignoring: !_isCategoryReorderEnabled,
+        child: Card(
+          child: ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: categories.length,
+            onReorder: (oldIndex, newIndex) {
+              if (oldIndex < newIndex) newIndex -= 1;
+              final reordered = List<ShoppingCategory>.from(categories);
+              final item = reordered.removeAt(oldIndex);
+              reordered.insert(newIndex, item);
+              final updated = [
+                for (int i = 0; i < reordered.length; i++)
+                  reordered[i].copyWith(priority: i),
+              ];
+              ref.read(categoriesProvider.notifier).reorder(updated);
+            },
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return ReorderableDragStartListener(
+                key: ValueKey(category.id),
+                index: index,
+                enabled: _isCategoryReorderEnabled,
+                child: Card(
+                  key: ValueKey(category.id),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  elevation: 0,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: ListTile(
+                    title: Text(category.name),
+                    subtitle: Text('Priorità: ${category.priority + 1}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () =>
+                              _showCategoryDialog(categories, category, index),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.delete_outline,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          onPressed: () => _deleteCategory(category),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      onPressed: () => _deleteCategory(category),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -146,10 +171,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
               child: Icon(
                 Icons.upload_file,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
               ),
             ),
             title: const Text('Esporta Dati'),
@@ -178,10 +203,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               child: Icon(
                 Icons.download,
-                color: Theme.of(context).colorScheme.onSecondaryContainer,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
             title: const Text('Importa Dati'),
