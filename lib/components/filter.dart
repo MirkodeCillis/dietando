@@ -1,3 +1,4 @@
+import 'package:dietando/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // Controller per gestire il Filter dall'esterno
@@ -93,6 +94,7 @@ class _FilterState<T> extends State<Filter<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       child: Row(
@@ -102,7 +104,7 @@ class _FilterState<T> extends State<Filter<T>> {
               controller: fieldCtrl,
               onChanged: onChange,
               decoration: InputDecoration(
-                labelText: "Filtra",
+                labelText: l10n.filterLabel,
                 suffix: IconButton(
                   icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
                   onPressed: _reset,

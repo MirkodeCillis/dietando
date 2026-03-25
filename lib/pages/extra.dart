@@ -1,6 +1,7 @@
 import 'package:dietando/components/filter.dart';
 import 'package:dietando/components/navbar.dart';
 import 'package:dietando/components/topbar.dart';
+import 'package:dietando/l10n/app_localizations.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/extra_items_provider.dart';
 import 'package:dietando/router.dart';
@@ -21,31 +22,34 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final itemsAsync = ref.watch(extraItemsProvider);
 
     final items = itemsAsync.value;
 
     return Scaffold(
-      appBar: AppTopBar(title: 'Spese Extra'),
+      appBar: AppTopBar(title: l10n.pageExtra),
       bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.extra),
       floatingActionButton: items != null
           ? FloatingActionButton.extended(
               onPressed: () => _showItemDialog(context, null, items),
-              label: const Text('Aggiungi'),
+              label: Text(l10n.btnAdd),
               icon: const Icon(Icons.add),
             )
           : null,
       body: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Errore: $e')),
+        error: (e, _) =>
+            Center(child: Text(l10n.errorWithMessage(e.toString()))),
         data: (items) {
-          final displayItems = (_filterController.isFiltering ? _filteredItems : items)
-              .map((fi) => items.firstWhere((i) => i.id == fi.id,
-                  orElse: () => fi))
-              .toList();
+          final displayItems =
+              (_filterController.isFiltering ? _filteredItems : items)
+                  .map((fi) => items.firstWhere((i) => i.id == fi.id,
+                      orElse: () => fi))
+                  .toList();
 
           return items.isEmpty
-              ? const Center(child: Text('Nessuna spesa extra da fare.'))
+              ? Center(child: Text(l10n.extraNoItems))
               : Column(
                   children: [
                     Filter<ExtraItem>(
@@ -97,7 +101,8 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
                                     ),
                                   ),
                                   subtitle: item.quantity != null
-                                      ? Text('Quantità: ${item.quantity}')
+                                      ? Text(l10n.quantityValue(
+                                          item.quantity!.toString()))
                                       : null,
                                   trailing: IconButton(
                                     icon: const Icon(Icons.edit),
@@ -123,6 +128,7 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
     ExtraItem? item,
     List<ExtraItem> allItems,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final qtyCtrl =
         TextEditingController(text: item?.quantity?.toString() ?? '');
@@ -133,7 +139,7 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(item == null ? 'Nuovo Articolo' : 'Modifica Articolo'),
+            Text(item == null ? l10n.extraNewItem : l10n.extraEditItem),
             if (item != null)
               IconButton(
                 icon: Icon(
@@ -153,20 +159,20 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
           children: [
             TextField(
               controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nome'),
+              decoration: InputDecoration(labelText: l10n.fieldName),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: qtyCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Quantità'),
+              decoration: InputDecoration(labelText: l10n.fieldQuantity),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annulla'),
+            child: Text(l10n.btnCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -185,7 +191,7 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
               _filterController.reset();
               Navigator.pop(ctx);
             },
-            child: const Text('Salva'),
+            child: Text(l10n.btnSave),
           ),
         ],
       ),

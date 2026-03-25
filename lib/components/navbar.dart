@@ -1,3 +1,4 @@
+import 'package:dietando/l10n/app_localizations.dart';
 import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -16,26 +17,27 @@ class AppNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final index = _routes.indexOf(currentRoute).clamp(0, _routes.length - 1);
     return NavigationBar(
       selectedIndex: index,
       onDestinationSelected: (i) => context.push(_routes[i]),
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.menu_book_outlined),
-          label: 'Dieta',
+          icon: const Icon(Icons.menu_book_outlined),
+          label: l10n.navDiet,
         ),
         NavigationDestination(
-          icon: Icon(Icons.food_bank_outlined),
-          label: 'Inventario',
+          icon: const Icon(Icons.food_bank_outlined),
+          label: l10n.navInventory,
         ),
         NavigationDestination(
-          icon: Icon(Icons.checklist_outlined),
-          label: 'Extra',
+          icon: const Icon(Icons.checklist_outlined),
+          label: l10n.navExtra,
         ),
         NavigationDestination(
-          icon: Icon(Icons.shopping_basket_outlined),
-          label: 'Spesa',
+          icon: const Icon(Icons.shopping_basket_outlined),
+          label: l10n.navShopping,
         ),
       ],
     );

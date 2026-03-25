@@ -39,6 +39,10 @@ migrate_working_dir/
 build/
 coverage/
 lib/generated_plugin_registrant.dart
+
+# l10n — generated from ARB files via `flutter gen-l10n`, do not edit manually
+lib/l10n/app_localizations.dart
+lib/l10n/app_localizations_*.dart
 # For library packages, don’t commit the pubspec.lock file.
 # Regenerating the pubspec.lock file lets you test your package against the latest compatible versions of its dependencies.
 # See https://dart.dev/guides/libraries/private-files#pubspeclock

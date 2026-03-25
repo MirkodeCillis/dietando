@@ -1,0 +1,137 @@
+{
+  "@@locale": "it",
+
+  "btnCancel": "Annulla",
+  "btnSave": "Salva",
+  "btnDelete": "Elimina",
+  "btnAdd": "Aggiungi",
+  "btnConfirm": "Conferma",
+  "dialogConfirmTitle": "Conferma",
+  "errorLoadingSettings": "Errore nel caricamento delle impostazioni",
+  "errorWithMessage": "Errore: {e}",
+  "@errorWithMessage": {
+    "placeholders": { "e": { "type": "String" } }
+  },
+
+  "fieldName": "Nome",
+  "fieldQuantity": "Quantità",
+  "fieldDescription": "Descrizione",
+  "fieldCategory": "Categoria",
+  "fieldUnit": "Unità di Misura",
+  "fieldTarget": "Target",
+  "fieldStock": "Stock",
+
+  "pageMealPlan": "Piano Alimentare",
+  "pageInventory": "Inventario Dieta",
+  "pageExtra": "Spese Extra",
+  "pageShopping": "Lista della Spesa",
+  "pageSettings": "Impostazioni",
+
+  "navDiet": "Dieta",
+  "navInventory": "Inventario",
+  "navExtra": "Extra",
+  "navShopping": "Spesa",
+
+  "filterLabel": "Filtra",
+
+  "settingsCategoriesTitle": "Categorie Lista della Spesa",
+  "settingsCategoriesHint": "Ordina le categorie per priorità (trascina per riordinare)",
+  "settingsAddCategory": "Aggiungi Categoria",
+  "settingsDataTitle": "Dati",
+  "settingsExport": "Esporta Dati",
+  "settingsExportSubtitle": "Salva i tuoi dati in un file",
+  "settingsImport": "Importa Dati",
+  "settingsImportSubtitle": "Carica dati da un file",
+  "settingsAppearance": "Aspetto",
+  "settingsLanguageTitle": "Lingua",
+  "settingsThemeSystem": "Sistema",
+  "settingsThemeSystemSubtitle": "Segue le impostazioni del dispositivo",
+  "settingsThemeLight": "Chiaro",
+  "settingsThemeLightSubtitle": "Tema chiaro",
+  "settingsThemeDark": "Scuro",
+  "settingsThemeDarkSubtitle": "Tema scuro",
+  "settingsPriority": "Priorità: {n}",
+  "@settingsPriority": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "settingsNewCategory": "Nuova Categoria",
+  "settingsEditCategory": "Modifica Categoria",
+  "settingsCategoryNameLabel": "Nome Categoria",
+  "settingsCategoryNameHint": "Es. Frutta e Verdura",
+  "settingsInsertName": "Inserisci un nome",
+  "settingsExportSuccess": "Esportazione completata con successo",
+  "settingsExportError": "C'è stato un errore con l'esportazione.",
+  "settingsImportSuccess": "Importazione completata con successo",
+  "settingsImportError": "C'è stato un errore con l'importazione.",
+  "settingsDeleteCategoryConfirm": "Vuoi eliminare questa categoria?",
+
+  "languageItalian": "Italiano",
+  "languageEnglish": "English",
+  "languageSpanish": "Español",
+  "languageFrench": "Français",
+  "languageGerman": "Deutsch",
+
+  "mealPlanNoItems": "Nessun alimento inserito",
+  "mealPlanAddFood": "Aggiungi Alimento",
+  "mealPlanEditFood": "Modifica Alimento",
+  "mealPlanCreateNewFood": "Crea Nuovo Alimento",
+  "mealPlanNewFood": "Nuovo Alimento",
+  "mealPlanCreateAndSelect": "Crea e Seleziona",
+  "mealPlanDeleteFoodConfirm": "Vuoi rimuovere questo alimento dal pasto?",
+  "mealPlanSelectFoodAndQty": "Seleziona un alimento e inserisci la quantità",
+  "mealPlanDeletedFood": "Alimento eliminato",
+  "mealPlanConfirmConsumptionTitle": "Conferma consumo pasto",
+  "mealPlanConfirmConsumptionBody": "Sei sicuro di aver consumato questo pasto?",
+  "mealPlanNoCategory": "Nessuna Categoria",
+
+  "mealTypeBreakfast": "Colazione",
+  "mealTypeMorningSnack": "Spuntino Mattutino",
+  "mealTypeLunch": "Pranzo",
+  "mealTypeAfternoonSnack": "Spuntino Pomeridiano",
+  "mealTypeDinner": "Cena",
+
+  "dayMonday": "Lunedì",
+  "dayTuesday": "Martedì",
+  "dayWednesday": "Mercoledì",
+  "dayThursday": "Giovedì",
+  "dayFriday": "Venerdì",
+  "daySaturday": "Sabato",
+  "daySunday": "Domenica",
+
+  "shoppingAllDone": "Tutto fatto!",
+  "shoppingFromDiet": "Da Dieta",
+  "shoppingItems": "{count, plural, =1{1 articolo} other{{count} articoli}}",
+  "@shoppingItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "shoppingAllComplete": "Tutto completo",
+  "shoppingNothingToBuy": "Nessun alimento da comprare!",
+  "shoppingExtraExpenses": "Spese Extra",
+  "shoppingAllBought": "Tutto comprato",
+  "shoppingNoExtras": "Nessun extra da comprare!",
+  "shoppingMissing": "Mancano {missing} {unit}",
+  "@shoppingMissing": {
+    "placeholders": {
+      "missing": { "type": "String" },
+      "unit": { "type": "String" }
+    }
+  },
+  "shoppingQtyLabel": "Q.tà",
+
+  "quantityValue": "Quantità: {n}",
+  "@quantityValue": {
+    "placeholders": { "n": { "type": "String" } }
+  },
+  "quantityNotSpecified": "Quantità non specificata",
+
+  "inventoryNoItems": "Nessun alimento nel piano.",
+  "inventoryDescriptionHint": "Aggiungi una descrizione...",
+
+  "extraNoItems": "Nessuna spesa extra da fare.",
+  "extraNewItem": "Nuovo Articolo",
+  "extraEditItem": "Modifica Articolo",
+
+  "unitGrams": "Grammi",
+  "unitPieces": "Pezzi",
+  "unitLiters": "Litri"
+}

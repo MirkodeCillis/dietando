@@ -1,0 +1,137 @@
+{
+  "@@locale": "en",
+
+  "btnCancel": "Cancel",
+  "btnSave": "Save",
+  "btnDelete": "Delete",
+  "btnAdd": "Add",
+  "btnConfirm": "Confirm",
+  "dialogConfirmTitle": "Confirm",
+  "errorLoadingSettings": "Error loading settings",
+  "errorWithMessage": "Error: {e}",
+  "@errorWithMessage": {
+    "placeholders": { "e": { "type": "String" } }
+  },
+
+  "fieldName": "Name",
+  "fieldQuantity": "Quantity",
+  "fieldDescription": "Description",
+  "fieldCategory": "Category",
+  "fieldUnit": "Unit of Measurement",
+  "fieldTarget": "Target",
+  "fieldStock": "Stock",
+
+  "pageMealPlan": "Meal Plan",
+  "pageInventory": "Diet Inventory",
+  "pageExtra": "Extra Expenses",
+  "pageShopping": "Shopping List",
+  "pageSettings": "Settings",
+
+  "navDiet": "Diet",
+  "navInventory": "Inventory",
+  "navExtra": "Extra",
+  "navShopping": "Shopping",
+
+  "filterLabel": "Filter",
+
+  "settingsCategoriesTitle": "Shopping Categories",
+  "settingsCategoriesHint": "Sort categories by priority (drag to reorder)",
+  "settingsAddCategory": "Add Category",
+  "settingsDataTitle": "Data",
+  "settingsExport": "Export Data",
+  "settingsExportSubtitle": "Save your data to a file",
+  "settingsImport": "Import Data",
+  "settingsImportSubtitle": "Load data from a file",
+  "settingsAppearance": "Appearance",
+  "settingsLanguageTitle": "Language",
+  "settingsThemeSystem": "System",
+  "settingsThemeSystemSubtitle": "Follows device settings",
+  "settingsThemeLight": "Light",
+  "settingsThemeLightSubtitle": "Light theme",
+  "settingsThemeDark": "Dark",
+  "settingsThemeDarkSubtitle": "Dark theme",
+  "settingsPriority": "Priority: {n}",
+  "@settingsPriority": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "settingsNewCategory": "New Category",
+  "settingsEditCategory": "Edit Category",
+  "settingsCategoryNameLabel": "Category Name",
+  "settingsCategoryNameHint": "E.g. Fruits and Vegetables",
+  "settingsInsertName": "Enter a name",
+  "settingsExportSuccess": "Export completed successfully",
+  "settingsExportError": "There was an error with the export.",
+  "settingsImportSuccess": "Import completed successfully",
+  "settingsImportError": "There was an error with the import.",
+  "settingsDeleteCategoryConfirm": "Do you want to delete this category?",
+
+  "languageItalian": "Italiano",
+  "languageEnglish": "English",
+  "languageSpanish": "Español",
+  "languageFrench": "Français",
+  "languageGerman": "Deutsch",
+
+  "mealPlanNoItems": "No food added",
+  "mealPlanAddFood": "Add Food",
+  "mealPlanEditFood": "Edit Food",
+  "mealPlanCreateNewFood": "Create New Food",
+  "mealPlanNewFood": "New Food",
+  "mealPlanCreateAndSelect": "Create and Select",
+  "mealPlanDeleteFoodConfirm": "Do you want to remove this food from the meal?",
+  "mealPlanSelectFoodAndQty": "Select a food and enter the quantity",
+  "mealPlanDeletedFood": "Deleted food",
+  "mealPlanConfirmConsumptionTitle": "Confirm meal consumption",
+  "mealPlanConfirmConsumptionBody": "Are you sure you have consumed this meal?",
+  "mealPlanNoCategory": "No Category",
+
+  "mealTypeBreakfast": "Breakfast",
+  "mealTypeMorningSnack": "Morning Snack",
+  "mealTypeLunch": "Lunch",
+  "mealTypeAfternoonSnack": "Afternoon Snack",
+  "mealTypeDinner": "Dinner",
+
+  "dayMonday": "Monday",
+  "dayTuesday": "Tuesday",
+  "dayWednesday": "Wednesday",
+  "dayThursday": "Thursday",
+  "dayFriday": "Friday",
+  "daySaturday": "Saturday",
+  "daySunday": "Sunday",
+
+  "shoppingAllDone": "All done!",
+  "shoppingFromDiet": "From Diet",
+  "shoppingItems": "{count, plural, =1{1 item} other{{count} items}}",
+  "@shoppingItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "shoppingAllComplete": "All complete",
+  "shoppingNothingToBuy": "No food to buy!",
+  "shoppingExtraExpenses": "Extra Expenses",
+  "shoppingAllBought": "All bought",
+  "shoppingNoExtras": "No extras to buy!",
+  "shoppingMissing": "Missing {missing} {unit}",
+  "@shoppingMissing": {
+    "placeholders": {
+      "missing": { "type": "String" },
+      "unit": { "type": "String" }
+    }
+  },
+  "shoppingQtyLabel": "Qty",
+
+  "quantityValue": "Quantity: {n}",
+  "@quantityValue": {
+    "placeholders": { "n": { "type": "String" } }
+  },
+  "quantityNotSpecified": "Quantity not specified",
+
+  "inventoryNoItems": "No food in the plan.",
+  "inventoryDescriptionHint": "Add a description...",
+
+  "extraNoItems": "No extra expenses to make.",
+  "extraNewItem": "New Item",
+  "extraEditItem": "Edit Item",
+
+  "unitGrams": "Grams",
+  "unitPieces": "Pieces",
+  "unitLiters": "Liters"
+}

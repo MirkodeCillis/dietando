@@ -1,16 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:dietando/l10n/app_localizations.dart';
+import 'package:dietando/l10n/extensions.dart';
 import 'package:dietando/models/models.dart';
+import 'package:flutter/material.dart';
 
 class ShoppingListDietItem extends StatefulWidget {
   final DietItem item;
   final Function(num amount) onUpdateDiet;
 
   const ShoppingListDietItem({
-    super.key, 
-    required this.item, 
+    super.key,
+    required this.item,
     required this.onUpdateDiet,
   });
-  
+
   @override
   State<ShoppingListDietItem> createState() => _ShoppingListItemDietState();
 }
@@ -43,6 +45,7 @@ class _ShoppingListItemDietState extends State<ShoppingListDietItem> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
@@ -58,7 +61,8 @@ class _ShoppingListItemDietState extends State<ShoppingListDietItem> {
             ),
           ),
           title: Text(widget.item.name),
-          subtitle: Text("Mancano $missing ${widget.item.unit.name}"),
+          subtitle: Text(l10n.shoppingMissing(
+              missing.toString(), widget.item.unit.l10nName(l10n))),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -68,18 +72,20 @@ class _ShoppingListItemDietState extends State<ShoppingListDietItem> {
                   controller: fieldCtrl,
                   decoration: InputDecoration(
                     floatingLabelAlignment: FloatingLabelAlignment.center,
-                    labelText: "Q.tà",
+                    labelText: l10n.shoppingQtyLabel,
                     hintText: "0000",
                   ),
-                )
-              ),
-              SizedBox(width: 8,),
-              IconButton(
-                icon: Icon(
-                  Icons.add_shopping_cart,
                 ),
-                onPressed: () {widget.onUpdateDiet(fieldCtrl.text.isEmpty ? missing : num.parse(fieldCtrl.text));},
-              )
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.add_shopping_cart),
+                onPressed: () {
+                  widget.onUpdateDiet(fieldCtrl.text.isEmpty
+                      ? missing
+                      : num.parse(fieldCtrl.text));
+                },
+              ),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:dietando/components/topbar.dart';
+import 'package:dietando/l10n/app_localizations.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/settings_provider.dart';
@@ -18,6 +19,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final categoriesAsync = ref.watch(categoriesProvider);
     final settingsAsync = ref.watch(settingsProvider);
 
@@ -26,63 +28,72 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final currentThemeMode = settings.themeModeEnum;
 
     return Scaffold(
-      appBar: AppTopBar(title: 'Impostazioni'),
+      appBar: AppTopBar(title: l10n.pageSettings),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Row(
             children: [
-              Expanded(child: _buildSectionTitle('Categorie Lista della Spesa'),),
+              Expanded(child: _buildSectionTitle(l10n.settingsCategoriesTitle)),
               IconButton(
-                icon: _isCategoryReorderEnabled ? const Icon(Icons.check) : const Icon(Icons.edit),
-                onPressed: () => setState(() => _isCategoryReorderEnabled = !_isCategoryReorderEnabled)
+                icon: _isCategoryReorderEnabled
+                    ? const Icon(Icons.check)
+                    : const Icon(Icons.edit),
+                onPressed: () => setState(
+                    () => _isCategoryReorderEnabled = !_isCategoryReorderEnabled),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'Ordina le categorie per priorità (trascina per riordinare)',
+            l10n.settingsCategoriesHint,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                ),
           ),
           const SizedBox(height: 16),
-          _buildCategoriesList(categories),
+          _buildCategoriesList(categories, l10n),
           const SizedBox(height: 8),
           Opacity(
             opacity: _isCategoryReorderEnabled ? 1.0 : 0.8,
             child: IgnorePointer(
               ignoring: !_isCategoryReorderEnabled,
-              child: 
-                FilledButton.tonalIcon(
-                  onPressed: () => _showCategoryDialog(categories, null, null),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Aggiungi Categoria'),
-                ),
-            )
+              child: FilledButton.tonalIcon(
+                onPressed: () => _showCategoryDialog(categories, null, null, l10n),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.settingsAddCategory),
+              ),
+            ),
           ),
 
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
 
-          _buildSectionTitle('Dati'),
+          _buildSectionTitle(l10n.settingsDataTitle),
           const SizedBox(height: 16),
-          _buildDataManagementSection(),
+          _buildDataManagementSection(l10n),
 
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
 
-          _buildSectionTitle('Aspetto'),
+          _buildSectionTitle(l10n.settingsAppearance),
           const SizedBox(height: 16),
-          _buildThemeSelector(currentThemeMode, settings),
+          _buildThemeSelector(currentThemeMode, settings, l10n),
 
           const SizedBox(height: 32),
           const Divider(),
           const SizedBox(height: 16),
 
-          _buildSectionTitle('Lingua'),
+          _buildSectionTitle(l10n.settingsLanguageTitle),
+          const SizedBox(height: 16),
+          _buildLanguageSelector(settings, l10n),
+
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -92,12 +103,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-      )
+            fontWeight: FontWeight.bold,
+          ),
     );
   }
 
-  Widget _buildCategoriesList(List<ShoppingCategory> categories) {
+  Widget _buildCategoriesList(
+      List<ShoppingCategory> categories, AppLocalizations l10n) {
     return Opacity(
       opacity: _isCategoryReorderEnabled ? 1.0 : 0.8,
       child: IgnorePointer(
@@ -134,21 +146,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: ListTile(
                     title: Text(category.name),
-                    subtitle: Text('Priorità: ${category.priority + 1}'),
+                    subtitle:
+                        Text(l10n.settingsPriority(category.priority + 1)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.edit, size: 20),
-                          onPressed: () =>
-                              _showCategoryDialog(categories, category, index),
+                          onPressed: () => _showCategoryDialog(
+                              categories, category, index, l10n),
                         ),
                         IconButton(
                           icon: Icon(
                             Icons.delete_outline,
                             color: Theme.of(context).colorScheme.error,
                           ),
-                          onPressed: () => _deleteCategory(category),
+                          onPressed: () => _deleteCategory(category, l10n),
                         ),
                       ],
                     ),
@@ -162,7 +175,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildDataManagementSection() {
+  Widget _buildDataManagementSection(AppLocalizations l10n) {
     return Column(
       children: [
         Card(
@@ -171,14 +184,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             leading: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+              backgroundColor:
+                  Theme.of(context).colorScheme.secondaryContainer,
               child: Icon(
                 Icons.upload_file,
                 color: Theme.of(context).colorScheme.onSecondaryContainer,
               ),
             ),
-            title: const Text('Esporta Dati'),
-            subtitle: const Text('Salva i tuoi dati in un file'),
+            title: Text(l10n.settingsExport),
+            subtitle: Text(l10n.settingsExportSubtitle),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
               final res = await ImportExportService.export(ref);
@@ -186,9 +200,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      res
-                          ? 'Esportazione completata con successo'
-                          : "C'è stato un errore con l'esportazione.",
+                      res ? l10n.settingsExportSuccess : l10n.settingsExportError,
                     ),
                   ),
                 );
@@ -209,8 +221,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
-            title: const Text('Importa Dati'),
-            subtitle: const Text('Carica dati da un file'),
+            title: Text(l10n.settingsImport),
+            subtitle: Text(l10n.settingsImportSubtitle),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
             onTap: () async {
               final res = await ImportExportService.importFromFile(ref);
@@ -218,9 +230,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      res
-                          ? 'Importazione completata con successo'
-                          : "C'è stato un errore con l'importazione.",
+                      res ? l10n.settingsImportSuccess : l10n.settingsImportError,
                     ),
                   ),
                 );
@@ -232,7 +242,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildThemeSelector(ThemeMode currentThemeMode, SettingsData settings) {
+  Widget _buildThemeSelector(
+      ThemeMode currentThemeMode, SettingsData settings, AppLocalizations l10n) {
     return Card(
       child: RadioGroup<ThemeMode>(
         groupValue: currentThemeMode,
@@ -256,16 +267,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               value: ThemeMode.system,
-              title: const Text('Sistema'),
-              subtitle: const Text('Segue le impostazioni del dispositivo'),
+              title: Text(l10n.settingsThemeSystem),
+              subtitle: Text(l10n.settingsThemeSystemSubtitle),
               secondary: const Icon(Icons.brightness_auto),
             ),
             const Divider(height: 1),
-            const RadioListTile<ThemeMode>(
+            RadioListTile<ThemeMode>(
               value: ThemeMode.light,
-              title: Text('Chiaro'),
-              subtitle: Text('Tema chiaro'),
-              secondary: Icon(Icons.light_mode),
+              title: Text(l10n.settingsThemeLight),
+              subtitle: Text(l10n.settingsThemeLightSubtitle),
+              secondary: const Icon(Icons.light_mode),
             ),
             const Divider(height: 1),
             RadioListTile<ThemeMode>(
@@ -276,8 +287,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               value: ThemeMode.dark,
-              title: const Text('Scuro'),
-              subtitle: const Text('Tema scuro'),
+              title: Text(l10n.settingsThemeDark),
+              subtitle: Text(l10n.settingsThemeDarkSubtitle),
               secondary: const Icon(Icons.dark_mode),
             ),
           ],
@@ -286,26 +297,71 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Widget _buildLanguageSelector(SettingsData settings, AppLocalizations l10n) {
+    final languages = [
+      ('it', l10n.languageItalian, '🇮🇹'),
+      ('en', l10n.languageEnglish, '🇬🇧'),
+      ('es', l10n.languageSpanish, '🇪🇸'),
+      ('fr', l10n.languageFrench, '🇫🇷'),
+      ('de', l10n.languageGerman, '🇩🇪'),
+    ];
+
+    return Card(
+      child: Column(
+        children: [
+          for (int i = 0; i < languages.length; i++) ...[
+            RadioListTile<String>(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: i == 0 ? const Radius.circular(12) : Radius.zero,
+                  bottom: i == languages.length - 1
+                      ? const Radius.circular(12)
+                      : Radius.zero,
+                ),
+              ),
+              value: languages[i].$1,
+              groupValue: settings.language,
+              title: Text(languages[i].$2),
+              secondary: Text(
+                languages[i].$3,
+                style: const TextStyle(fontSize: 24),
+              ),
+              onChanged: (value) {
+                if (value != null) {
+                  ref.read(settingsProvider.notifier).setLanguage(value);
+                }
+              },
+            ),
+            if (i < languages.length - 1) const Divider(height: 1),
+          ],
+        ],
+      ),
+    );
+  }
+
   void _showCategoryDialog(
     List<ShoppingCategory> categories,
     ShoppingCategory? category,
     int? index,
+    AppLocalizations l10n,
   ) {
     final nameCtrl = TextEditingController(text: category?.name ?? '');
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(category == null ? 'Nuova Categoria' : 'Modifica Categoria'),
+        title: Text(category == null
+            ? l10n.settingsNewCategory
+            : l10n.settingsEditCategory),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Nome Categoria',
-                  hintText: 'Es. Frutta e Verdura',
+                decoration: InputDecoration(
+                  labelText: l10n.settingsCategoryNameLabel,
+                  hintText: l10n.settingsCategoryNameHint,
                 ),
               ),
               const SizedBox(height: 24),
@@ -315,13 +371,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annulla'),
+            child: Text(l10n.btnCancel),
           ),
           FilledButton(
             onPressed: () {
               if (nameCtrl.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Inserisci un nome')),
+                  SnackBar(content: Text(l10n.settingsInsertName)),
                 );
                 return;
               }
@@ -341,30 +397,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
               Navigator.pop(ctx);
             },
-            child: const Text('Salva'),
+            child: Text(l10n.btnSave),
           ),
         ],
       ),
     );
   }
 
-  void _deleteCategory(ShoppingCategory category) {
+  void _deleteCategory(ShoppingCategory category, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Conferma'),
-        content: const Text('Vuoi eliminare questa categoria?'),
+        title: Text(l10n.dialogConfirmTitle),
+        content: Text(l10n.settingsDeleteCategoryConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annulla'),
+            child: Text(l10n.btnCancel),
           ),
           FilledButton(
             onPressed: () {
               ref.read(categoriesProvider.notifier).delete(category.id);
               Navigator.pop(ctx);
             },
-            child: const Text('Elimina'),
+            child: Text(l10n.btnDelete),
           ),
         ],
       ),

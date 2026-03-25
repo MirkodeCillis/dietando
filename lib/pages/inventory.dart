@@ -1,6 +1,8 @@
 import 'package:dietando/components/filter.dart';
 import 'package:dietando/components/navbar.dart';
 import 'package:dietando/components/topbar.dart';
+import 'package:dietando/l10n/app_localizations.dart';
+import 'package:dietando/l10n/extensions.dart';
 import 'package:dietando/models/models.dart';
 import 'package:dietando/providers/categories_provider.dart';
 import 'package:dietando/providers/diet_items_provider.dart';
@@ -23,33 +25,36 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final itemsAsync = ref.watch(dietItemsProvider);
     final categories = ref.watch(categoriesProvider).value ?? [];
 
     final items = itemsAsync.value;
 
     return Scaffold(
-      appBar: AppTopBar(title: 'Inventario Dieta'),
+      appBar: AppTopBar(title: l10n.pageInventory),
       bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.inventory),
       floatingActionButton: items != null
           ? FloatingActionButton.extended(
               onPressed: () =>
                   _showItemDialog(context, null, items, categories),
-              label: const Text('Aggiungi'),
+              label: Text(l10n.btnAdd),
               icon: const Icon(Icons.add),
             )
           : null,
       body: itemsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Errore: $e')),
+        error: (e, _) =>
+            Center(child: Text(l10n.errorWithMessage(e.toString()))),
         data: (items) {
-          final displayItems = (_filterController.isFiltering ? _filteredItems : items)
-              .map((fi) => items.firstWhere((i) => i.id == fi.id,
-                  orElse: () => fi))
-              .toList();
+          final displayItems =
+              (_filterController.isFiltering ? _filteredItems : items)
+                  .map((fi) => items.firstWhere((i) => i.id == fi.id,
+                      orElse: () => fi))
+                  .toList();
 
           return items.isEmpty
-              ? const Center(child: Text('Nessun alimento nel piano.'))
+              ? Center(child: Text(l10n.inventoryNoItems))
               : Column(
                   children: [
                     Filter<DietItem>(
@@ -124,9 +129,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                            'Target: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.name}'),
+                                            '${l10n.fieldTarget}: ${item.weeklyTarget.toStringAsFixed(0)} ${item.unit.l10nName(l10n)}'),
                                         Text(
-                                            'Stock: ${item.currentStock.toStringAsFixed(0)} ${item.unit.name}'),
+                                            '${l10n.fieldStock}: ${item.currentStock.toStringAsFixed(0)} ${item.unit.l10nName(l10n)}'),
                                       ],
                                     ),
                                   ],
@@ -150,6 +155,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
     List<DietItem> allItems,
     List<ShoppingCategory> categories,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final descriptionCtrl =
         TextEditingController(text: item?.description ?? '');
@@ -158,11 +164,12 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
     final stockCtrl =
         TextEditingController(text: item?.currentStock.toString() ?? '');
     Unit selectedUnit = item?.unit ?? Unit.Grammi;
-    final unitCtrl = TextEditingController(text: selectedUnit.name);
+    final unitCtrl =
+        TextEditingController(text: selectedUnit.l10nName(l10n));
     ShoppingCategory selectedCategory = categories.firstWhere(
       (cat) => cat.id == item?.categoryId,
       orElse: () =>
-          ShoppingCategory(id: '', name: 'Nessuna Categoria', priority: 999),
+          ShoppingCategory(id: '', name: l10n.mealPlanNoCategory, priority: 999),
     );
     final categoryCtrl = TextEditingController(text: selectedCategory.name);
 
@@ -172,7 +179,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(item == null ? 'Nuovo Alimento' : 'Modifica Alimento'),
+            Text(item == null ? l10n.mealPlanNewFood : l10n.mealPlanEditFood),
             if (item != null)
               IconButton(
                 icon: Icon(
@@ -196,7 +203,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
             children: [
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Nome'),
+                decoration: InputDecoration(labelText: l10n.fieldName),
               ),
               const SizedBox(height: 16),
               Row(
@@ -205,7 +212,8 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                     child: TextField(
                       controller: targetCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Target'),
+                      decoration:
+                          InputDecoration(labelText: l10n.fieldTarget),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -213,7 +221,8 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                     child: TextField(
                       controller: stockCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Stock'),
+                      decoration:
+                          InputDecoration(labelText: l10n.fieldStock),
                     ),
                   ),
                 ],
@@ -224,14 +233,17 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                 initialSelection: selectedUnit,
                 controller: unitCtrl,
                 requestFocusOnTap: false,
-                label: const Text('Unità di Misura'),
+                label: Text(l10n.fieldUnit),
                 onSelected: (Unit? unit) {
-                  if (unit != null) selectedUnit = unit;
+                  if (unit != null) {
+                    selectedUnit = unit;
+                    unitCtrl.text = unit.l10nName(l10n);
+                  }
                 },
                 dropdownMenuEntries: Unit.values
                     .map((unit) => DropdownMenuEntry<Unit>(
                           value: unit,
-                          label: unit.name,
+                          label: unit.l10nName(l10n),
                         ))
                     .toList(),
               ),
@@ -241,9 +253,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                 minLines: 1,
                 maxLines: 4,
                 keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
-                  labelText: 'Descrizione',
-                  hintText: 'Aggiungi una descrizione...',
+                decoration: InputDecoration(
+                  labelText: l10n.fieldDescription,
+                  hintText: l10n.inventoryDescriptionHint,
                 ),
               ),
               const SizedBox(height: 16),
@@ -252,7 +264,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                 initialSelection: selectedCategory,
                 controller: categoryCtrl,
                 requestFocusOnTap: false,
-                label: const Text('Categoria'),
+                label: Text(l10n.fieldCategory),
                 onSelected: (ShoppingCategory? category) {
                   if (category != null) selectedCategory = category;
                 },
@@ -269,7 +281,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annulla'),
+            child: Text(l10n.btnCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -291,7 +303,7 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
               _filterController.reset();
               Navigator.pop(ctx);
             },
-            child: const Text('Salva'),
+            child: Text(l10n.btnSave),
           ),
         ],
       ),

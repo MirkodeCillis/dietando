@@ -1,22 +1,22 @@
-import 'package:flutter/material.dart';
+import 'package:dietando/l10n/app_localizations.dart';
 import 'package:dietando/models/models.dart';
+import 'package:flutter/material.dart';
 
 class ShoppingListExtraItem extends StatefulWidget {
   final ExtraItem item;
   final Function() onUpdateExtra;
 
   const ShoppingListExtraItem({
-    super.key, 
-    required this.item, 
+    super.key,
+    required this.item,
     required this.onUpdateExtra,
   });
-  
+
   @override
   State<ShoppingListExtraItem> createState() => _ShoppingListExtraItemState();
 }
 
 class _ShoppingListExtraItemState extends State<ShoppingListExtraItem> {
-
   @override
   void initState() {
     super.initState();
@@ -25,9 +25,6 @@ class _ShoppingListExtraItemState extends State<ShoppingListExtraItem> {
   @override
   void didUpdateWidget(ShoppingListExtraItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.item.id != widget.item.id || 
-        oldWidget.item.quantity != widget.item.quantity) {
-    }
   }
 
   @override
@@ -37,6 +34,7 @@ class _ShoppingListExtraItemState extends State<ShoppingListExtraItem> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Card(
@@ -54,14 +52,15 @@ class _ShoppingListExtraItemState extends State<ShoppingListExtraItem> {
           title: Text(widget.item.name),
           subtitle: Text(
             widget.item.quantity != null
-              ? "Quantità: ${widget.item.quantity!.toStringAsFixed(2)}" 
-              : "Quantità non specificata"
+                ? l10n.quantityValue(
+                    widget.item.quantity!.toStringAsFixed(2))
+                : l10n.quantityNotSpecified,
           ),
           trailing: IconButton(
-            icon: Icon(
-              Icons.check_circle_outline,
-            ),
-            onPressed: () {widget.onUpdateExtra();},
+            icon: const Icon(Icons.check_circle_outline),
+            onPressed: () {
+              widget.onUpdateExtra();
+            },
           ),
         ),
       ),

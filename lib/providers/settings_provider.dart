@@ -31,6 +31,23 @@ class SettingsNotifier extends AsyncNotifier<SettingsData> {
     }
   }
 
+  Future<void> setLanguage(String language) async {
+    final current = state.requireValue;
+    final updated = SettingsData(
+      themeMode: current.themeMode,
+      language: language,
+    );
+    final previous = state;
+    state = AsyncData(updated);
+    try {
+      await ref.read(settingsRepositoryProvider).save(updated);
+    } catch (e, st) {
+      state = previous;
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
   Future<void> replaceAll(SettingsData settings) async {
     final previous = state;
     state = AsyncData(settings);

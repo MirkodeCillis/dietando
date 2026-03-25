@@ -2,6 +2,8 @@ import 'package:dietando/providers/settings_provider.dart';
 import 'package:dietando/providers/shared_preferences_provider.dart';
 import 'package:dietando/router.dart';
 import 'package:flutter/material.dart';
+import 'package:dietando/l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,7 +28,7 @@ class MyApp extends ConsumerWidget {
     final settingsAsync = ref.watch(settingsProvider);
 
     return settingsAsync.when(
-      loading: () => MaterialApp(
+      loading: () => const MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
           body: Center(
@@ -36,25 +38,25 @@ class MyApp extends ConsumerWidget {
                 Icon(
                   Icons.restaurant_menu,
                   size: 64,
-                  color: const Color(0xFF7692FF),
+                  color: Color(0xFF7692FF),
                 ),
-                const SizedBox(height: 24),
-                const CircularProgressIndicator(),
+                SizedBox(height: 24),
+                CircularProgressIndicator(),
               ],
             ),
           ),
         ),
       ),
-      error: (err, stack) => MaterialApp(
+      error: (err, stack) => const MaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                const Text('Errore nel caricamento delle impostazioni'),
+                Icon(Icons.error_outline, size: 64, color: Colors.red),
+                SizedBox(height: 16),
+                Text('Error loading settings'),
               ],
             ),
           ),
@@ -66,6 +68,20 @@ class MyApp extends ConsumerWidget {
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
         themeMode: settings.themeModeEnum,
+        locale: Locale(settings.language),
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en'),
+          Locale('it'),
+          Locale('es'),
+          Locale('fr'),
+          Locale('de'),
+        ],
         routerConfig: appRouter,
       ),
     );
