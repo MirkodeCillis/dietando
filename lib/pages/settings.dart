@@ -27,7 +27,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       appBar: AppTopBar(title: 'Impostazioni'),
-      bottomNavigationBar: const AppNavBar(currentRoute: AppRoutes.mealPlan),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
