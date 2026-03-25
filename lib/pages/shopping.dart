@@ -51,21 +51,19 @@ class _ShoppingPageState extends ConsumerState<ShoppingPage> {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
 
     // Sync filtered lists when source changes
-    if (_filteredDietItems.length != dietItems.length) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => setState(() => _filteredDietItems = dietItems),
-      );
-    }
-    if (_filteredExtraItems.length != extraItems.length) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => setState(() => _filteredExtraItems = extraItems),
-      );
-    }
+    final filteredDietItems = (_dietFilterController.isFiltering ? _filteredDietItems : dietItems)
+      .map((fi) => dietItems.firstWhere((i) => i.id == fi.id,
+          orElse: () => fi))
+      .toList();
+    final filteredExtraItems = (_extraFilterController.isFiltering ? _filteredExtraItems : extraItems)
+      .map((fi) => extraItems.firstWhere((i) => i.id == fi.id,
+          orElse: () => fi))
+      .toList();
 
     final missingDiet =
-        _filteredDietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
+        filteredDietItems.where((i) => (i.weeklyTarget - i.currentStock) > 0).toList();
     final sortedDiet = _sortByCategory(missingDiet, categories);
-    final pendingExtras = _filteredExtraItems.where((i) => !i.isBought).toList();
+    final pendingExtras = filteredExtraItems.where((i) => !i.isBought).toList();
 
     final appBar = AppBar(
       title: const Text(

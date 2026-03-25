@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 // Controller per gestire il Filter dall'esterno
 class FilterController {
   VoidCallback? _resetCallback;
+  String? _currentValue;
+
+  bool get isFiltering => (_currentValue ?? '').length >= 2;
 
   void _attach(VoidCallback callback) {
     _resetCallback = callback;
@@ -10,6 +13,11 @@ class FilterController {
 
   void _detach() {
     _resetCallback = null;
+    _currentValue = '';
+  }
+
+  void _setValue(String? value) {
+    _currentValue = value;
   }
 
   void reset() {
@@ -61,7 +69,8 @@ class _FilterState<T> extends State<Filter<T>> {
   }
 
   void onChange(String value) {
-    if (value.length < 3) {
+    widget.controller?._setValue(value);
+    if (value.length < 2) {
       widget.updateList(widget.list);
       return;
     }

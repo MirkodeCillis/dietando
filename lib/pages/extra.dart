@@ -39,11 +39,10 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Errore: $e')),
         data: (items) {
-          if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) setState(() => _filteredItems = items);
-            });
-          }
+          final displayItems = (_filterController.isFiltering ? _filteredItems : items)
+              .map((fi) => items.firstWhere((i) => i.id == fi.id,
+                  orElse: () => fi))
+              .toList();
 
           return items.isEmpty
               ? const Center(child: Text('Nessuna spesa extra da fare.'))
@@ -60,9 +59,9 @@ class _ExtraPageState extends ConsumerState<ExtraPage> {
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                        itemCount: _filteredItems.length,
+                        itemCount: displayItems.length,
                         itemBuilder: (ctx, i) {
-                          final item = _filteredItems[i];
+                          final item = displayItems[i];
                           return Card(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 0, vertical: 8),

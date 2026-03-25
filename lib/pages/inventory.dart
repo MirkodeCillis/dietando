@@ -43,12 +43,10 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Errore: $e')),
         data: (items) {
-          // Keep filtered list in sync when source changes
-          if (_filteredItems.isEmpty || _filteredItems.length != items.length) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) setState(() => _filteredItems = items);
-            });
-          }
+          final displayItems = (_filterController.isFiltering ? _filteredItems : items)
+              .map((fi) => items.firstWhere((i) => i.id == fi.id,
+                  orElse: () => fi))
+              .toList();
 
           return items.isEmpty
               ? const Center(child: Text('Nessun alimento nel piano.'))
@@ -65,9 +63,9 @@ class _InventoryPageState extends ConsumerState<InventoryPage> {
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                        itemCount: _filteredItems.length,
+                        itemCount: displayItems.length,
                         itemBuilder: (ctx, i) {
-                          final item = _filteredItems[i];
+                          final item = displayItems[i];
                           final progress = item.weeklyTarget > 0
                               ? (item.currentStock / item.weeklyTarget)
                                   .clamp(0.0, 1.0)
