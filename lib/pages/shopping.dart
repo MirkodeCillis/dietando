@@ -65,14 +65,6 @@ class _ShoppingPageState extends ConsumerState<ShoppingPage> {
     final sortedDiet = _sortByCategory(missingDiet, categories);
     final pendingExtras = filteredExtraItems.where((i) => !i.isBought).toList();
 
-    final appBar = AppBar(
-      title: const Text(
-        'Lista della Spesa',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      centerTitle: true,
-      elevation: 2,
-    );
     const navBar = AppNavBar(currentRoute: AppRoutes.shopping);
 
     if (missingDiet.isEmpty && pendingExtras.isEmpty) {
@@ -105,7 +97,7 @@ class _ShoppingPageState extends ConsumerState<ShoppingPage> {
     }
 
     return Scaffold(
-      appBar: appBar,
+      appBar: AppTopBar(title: 'Lista della Spesa'),
       bottomNavigationBar: navBar,
       body: ListView(
         padding: const EdgeInsets.all(8),

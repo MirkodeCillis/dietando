@@ -23,10 +23,11 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       elevation: 2,
       actions: [
-        IconButton(
-          onPressed: () => context.push(AppRoutes.settings),
-          icon: const Icon(Icons.settings_outlined),
-        ),
+        if (GoRouterState.of(context).matchedLocation != AppRoutes.settings)
+          IconButton(
+            onPressed: () => context.push(AppRoutes.settings),
+            icon: const Icon(Icons.settings_outlined),
+          ),
       ],
     );
   }
