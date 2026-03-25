@@ -114,6 +114,8 @@ Output: `build/app/outputs/bundle/release/app-release.aab`
 flutter build apk --release
 ```
 
+Output: `build/app/outputs/flutter-apk/app-release.apk`
+
 ### iOS (richiede Xcode su macOS)
 
 ```bash
